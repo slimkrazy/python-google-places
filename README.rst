@@ -12,7 +12,7 @@ Installation
 ============
 
 .. _installation:
-TODO
+sudo pip install https://github.com/slimkrazy/python-google-places/zipball/master
 
 
 Usage
