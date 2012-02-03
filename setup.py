@@ -7,7 +7,7 @@ from googleplaces import __author__, __email__, __version__
 DESCRIPTION = 'A simple wrapper around the new \'experimental\' Google Places API.'
 
 setup(
-    name = 'python-goggle-places',
+    name = 'python-google-places',
     version = __version__,
     url = 'http://github.com/slimkrazy/python-google-places',
     author = __author__,
