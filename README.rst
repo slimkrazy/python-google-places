@@ -71,11 +71,14 @@ Support for adding and deleting pending.
 
 Reference
 =========
-googleplaces.geocode_location(location, sensor=False)
-
-
 googleplaces.GooglePlacesError
 googleplaces.GooglePlacesAttributeError
+
+
+googleplaces.geocode_location(location, sensor=False)
+  Converts a human-readable location to a Dict containing the keys: lat, lng.
+  Raises googleplaces.GooglePlacesError if the geocoder fails to find the
+  specified location.
 
 
 googleplaces.GooglePlaces
