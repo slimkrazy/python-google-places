@@ -130,7 +130,7 @@ class GooglePlaces(object):
         self._request_params = None
 
     def query(self, location=None, lat_lng=None, keyword=None, radius=3200,
-              sensor=False, types=[]):
+              rankby="prominence", sensor=False, types=[]):
         """Perform a search using the Google Places API.
 
         One of either location or lat_lng are required, the rest of the keyword
@@ -146,6 +146,8 @@ class GooglePlaces(object):
         radius   -- The radius (in meters) around the location/lat_lng to
                     restrict the search to. The maximum is 50000 meters.
                     (default 3200)
+        rankby   -- Specifies the order in which results are listed : 
+                    'prominence' (default) or 'distance' (imply no radius argument)
         sensor   -- Indicates whether or not the Place request came from a
                     device using a location sensor (default False)
         types    -- An optional list of types, restricting the results to
@@ -159,7 +161,11 @@ class GooglePlaces(object):
         radius = (radius if radius <= GooglePlaces.MAXIMUM_SEARCH_RADIUS
                   else GooglePlaces.MAXIMUM_SEARCH_RADIUS)
         lat_lng_str = '%(lat)s,%(lng)s' % self._lat_lng
-        self._request_params = {'location': lat_lng_str, 'radius': radius}
+        self._request_params = {'location': lat_lng_str}
+        if rankby == "prominence":
+            self._request_params['radius'] = radius
+        else:
+            self._request_params['rankby'] = rankby
         if len(types) > 0:
             self._request_params['types'] = '|'.join(types)
         if keyword is not None:
