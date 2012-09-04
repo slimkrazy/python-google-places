@@ -20,12 +20,14 @@ except ImportError:
 import urllib
 import urllib2
 
+import lang
+import ranking
 import types
 
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
            'geocode_location']
-__version__ = '0.8.0'
+__version__ = '0.9.0'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
@@ -120,6 +122,11 @@ class GooglePlaces(object):
                       'json?')
     CHECKIN_API_URL = ('https://maps.googleapis.com/maps/api/place/check-in/' +
                        'json?sensor=%s&key=%s')
+    ADD_API_URL = ('https://maps.googleapis.com/maps/api/place/add/json?' +
+                   'sensor=%s&key=%s')
+    DELETE_API_URL = ('https://maps.googleapis.com/maps/api/place/delete/' +
+                      'json?sensor=%s&key=%s')
+
     MAXIMUM_SEARCH_RADIUS = 50000
     RESPONSE_STATUS_OK = 'OK'
     RESPONSE_STATUS_ZERO_RESULTS = 'ZERO_RESULTS'
@@ -129,29 +136,36 @@ class GooglePlaces(object):
         self._sensor = False
         self._request_params = None
 
-    def query(self, location=None, lat_lng=None, keyword=None, radius=3200,
-              rankby="prominence", sensor=False, types=[]):
+    def query(self, language=lang.ENGLISH, keyword=None, location=None,
+               lat_lng=None, name=None, radius=3200, rankby=ranking.PROMINENCE,
+               sensor=False, types=[]):
         """Perform a search using the Google Places API.
 
         One of either location or lat_lng are required, the rest of the keyword
         arguments are optional.
 
         keyword arguments:
-        location -- A human readable location, e.g 'London, England'
-                    (default None)
-        lat_lng  -- A dict containing the following keys: lat, lng
-                    (default None)
         keyword  -- A term to be matched against all available fields, including
                     but not limited to name, type, and address (default None)
+        location -- A human readable location, e.g 'London, England'
+                    (default None)
+        language -- The language code, indicating in which language the
+                    results should be returned, if possble. (default lang.ENGLISH)
+        lat_lng  -- A dict containing the following keys: lat, lng
+                    (default None)
+        name     -- A term to be matched against the names of the Places.
+                    Results will be restricted to those containing the passed
+                    name value. (default None)
         radius   -- The radius (in meters) around the location/lat_lng to
                     restrict the search to. The maximum is 50000 meters.
                     (default 3200)
-        rankby   -- Specifies the order in which results are listed : 
-                    'prominence' (default) or 'distance' (imply no radius argument)
+        rankby   -- Specifies the order in which results are listed :
+                    ranking.PROMINENCE (default) or ranking.DISTANCE
+                    (imply no radius argument).
         sensor   -- Indicates whether or not the Place request came from a
-                    device using a location sensor (default False)
+                    device using a location sensor (default False).
         types    -- An optional list of types, restricting the results to
-                    Places (default [])
+                    Places (default []).
         """
         if location is None and lat_lng is None:
             raise ValueError('One of location or lat_lng must be passed in.')
@@ -162,7 +176,7 @@ class GooglePlaces(object):
                   else GooglePlaces.MAXIMUM_SEARCH_RADIUS)
         lat_lng_str = '%(lat)s,%(lng)s' % self._lat_lng
         self._request_params = {'location': lat_lng_str}
-        if rankby == "prominence":
+        if rankby == 'prominence':
             self._request_params['radius'] = radius
         else:
             self._request_params['rankby'] = rankby
@@ -170,6 +184,10 @@ class GooglePlaces(object):
             self._request_params['types'] = '|'.join(types)
         if keyword is not None:
             self._request_params['keyword'] = keyword
+        if name is not None:
+            self._request_params['name'] = name
+        if language is not None:
+            self._request_params['language'] = language
         self._add_required_param_keys()
         url, places_response = _fetch_remote_json(
                 GooglePlaces.QUERY_API_URL, self._request_params)
@@ -182,7 +200,7 @@ class GooglePlaces(object):
         keyword arguments:
         reference -- The unique Google reference for the relevant place.
         sensor    -- Boolean flag denoting if the location came from a
-                         device using its' location sensor (default False)
+                     device using its location sensor (default False).
         """
         data = {'reference': reference}
         url, checkin_response = _fetch_remote_json(
@@ -196,10 +214,95 @@ class GooglePlaces(object):
         keyword arguments:
         reference -- The unique Google reference for the required place.
         sensor    -- Boolean flag denoting if the location came from a
-                         device using its' location sensor (default False)
+                     device using its' location sensor (default False).
         """
         place_details = _get_place_details(reference, self.api_key, sensor)
         return Place(self, place_details)
+
+    def add_place(self, **kwargs):
+        """Adds a place to the Google Places database.
+
+        On a successful request, this method will return a dict containing
+        the the new Place's reference and id in keys 'reference' and 'id'
+        respectively.
+
+        keyword arguments:
+        name        -- The full text name of the Place. Limited to 255
+                       characters.
+        lat_lng     -- A dict containing the following keys: lat, lng.
+        accuracy    -- The accuracy of the location signal on which this request
+                       is based, expressed in meters.
+        types       -- The category in which this Place belongs. Only one type
+                       can currently be specified for a Place. A string or
+                       single element list may be passed in.
+        language    -- The language in which the Place's name is being reported.
+                       (defaults 'en').
+        sensor      -- Boolean flag denoting if the location came from a device
+                       using its location sensor (default False).
+        """
+        required_kwargs = {'name': [str], 'lat_lng': [dict],
+                           'accuracy': [int], 'types': [str, list]}
+        request_params = {}
+        for key in required_kwargs:
+            if key not in kwargs or kwargs[key] is None:
+                raise ValueError('The %s argument is required.' % key)
+            expected_types = required_kwargs[key]
+            type_is_valid = False
+            for expected_type in expected_types:
+                if isinstance(kwargs[key], expected_type):
+                    type_is_valid = True
+                    break
+            if not type_is_valid:
+                raise ValueError('Invalid value for %s' % key)
+            if key is not 'lat_lng':
+                request_params[key] = kwargs[key]
+
+        if len(kwargs['name']) > 255:
+            raise ValueError('The place name must not exceed 255 characters ' +
+                             'in length.')
+        try:
+            kwargs['lat_lng']['lat']
+            kwargs['lat_lng']['lng']
+            request_params['location'] = kwargs['lat_lng']
+        except KeyError:
+            raise ValueError('Invalid keys for lat_lng.')
+
+        request_params['language'] = (kwargs.get('language')
+                if kwargs.get('language') is not None else
+                lang.ENGLISH)
+
+        sensor = (kwargs.get('sensor')
+                       if kwargs.get('sensor') is not None else
+                       False)
+
+        # At some point Google might support multiple types, so this supports
+        # strings and lists.
+        if isinstance(kwargs['types'], str):
+            request_params['types'] = [kwargs['types']]
+        else:
+            request_params['types'] = kwargs['types']
+        url, add_response = _fetch_remote_json(
+                GooglePlaces.ADD_API_URL % (str(sensor).lower(),
+                self.api_key), json.dumps(request_params), use_http_post=True)
+        _validate_response(url, add_response)
+        return {'reference': add_response['reference'],
+                'id': add_response['id']}
+
+    def delete_place(self, reference, sensor=False):
+        """Deletes a place from the Google Places database.
+
+        keyword arguments:
+        reference  -- The textual identifier that uniquely identifies this
+                      Place, returned from a Place Search request.
+        sensor     -- Boolean flag denoting if the location came from a device
+                      using its location sensor (default False).
+        """
+
+        request_params = {'reference': reference}
+        url, delete_response = _fetch_remote_json(
+                GooglePlaces.DELETE_API_URL % (str(sensor).lower(),
+                self.api_key), json.dumps(request_params), use_http_post=True)
+        _validate_response(url, delete_response)
 
     def _add_required_param_keys(self):
         self._request_params['key'] = self.api_key
@@ -256,7 +359,7 @@ class Place(object):
         self._id = place_data['id']
         self._reference = place_data['reference']
         self._name = place_data['name']
-        self._vicinity = place_data['vicinity']
+        self._vicinity = place_data.get('vicinity', '')
         self._geo_location = place_data['geometry']['location']
         self._rating = place_data.get('rating')
         self._types = place_data.get('types')
@@ -394,7 +497,7 @@ class Place(object):
                 len(self.html_attributions) > 0)
 
     def checkin(self):
-        """Checks in an anonynomous user in."""
+        """Checks in an anonymous user in."""
         self._query_instance.checkin(self.reference,
                                      self._query_instance.sensor)
 

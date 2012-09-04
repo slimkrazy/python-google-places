@@ -12,9 +12,11 @@ Installation
 ============
 
 .. _installation:
-sudo pip install https://github.com/slimkrazy/python-google-places/zipball/master
+pip install https://github.com/slimkrazy/python-google-places/zipball/master
 
 OR
+
+pip install python-google-places
 
 Download source and then:
 python setup.py install
@@ -82,8 +84,31 @@ googleplaces.geocode_location(location, sensor=False)
 
 
 googleplaces.GooglePlaces
-  query()
+  query(**kwargs)
     Returns googleplaces.GooglePlacesSearchResult
+      kwargs:
+        keyword  -- A term to be matched against all available fields, including but
+                    not limited to name, type, and address (default None)
+
+        location -- A human readable location, e.g 'London, England' (default None)
+
+        language -- The language code, indicating in which language the results
+                    should be returned, if possble. (default en)
+
+        lat_lng  -- A dict containing the following keys: lat, lng (default None)
+
+        name     -- A term to be matched against the names of the Places.
+                    Results will be restricted to those containing the passed name value. (default None)
+
+        radius   -- The radius (in meters) around the location/lat_lng to restrict
+                    the search to. The maximum is 50000 meters (default 3200)
+        rankby   -- Specifies the order in which results are listed:
+                    'prominence' (default) or 'distance' (imply no radius argument)
+
+        sensor   -- Indicates whether or not the Place request came from a device
+                    using a location sensor (default False)
+
+        types    -- An optional list of types, restricting the results to Places (default [])
 
   get_place(reference)
     Returns a detailed instance of googleplaces.Place
