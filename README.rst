@@ -36,11 +36,13 @@ Usage
 .. _usage:
 Code is easier to understand than words, so::
 
-    from googleplaces import GooglePlaces, types
+    from googleplaces import GooglePlaces, types, lang
 
     YOUR_API_KEY = 'AIzaSyAiFpFd85eMtfbvmVNEYuNds5TEF9FjIPI'
 
-    query_result = GooglePlaces(YOUR_API_KEY).query(
+    google_places = GooglePlaces(YOUR_API_KEY)
+
+    query_result = google_places.query(
             location='London, England', keyword='Fish and Chips',
             radius=20000, types=[types.TYPE_FOOD])
 
@@ -65,10 +67,21 @@ Code is easier to understand than words, so::
         print place.url
 
 
+    # Adding and deleting a place
+    try:
+        added_place = google_places.add_place(name='Mom and Pop local store',
+                lat_lng={'lat': 51.501984, 'lng': -0.141792},
+                accuracy=100,
+                types=types.TYPE_HOME_GOODS_STORE,
+                language=lang.ENGLISH_GREAT_BRITAIN)
+        print added_place.reference # The Google Places reference - Important!
+        print added_place.id
 
-Known Issues
-=========
-Support for adding and deleting pending.
+        # Delete the place that you've just added.
+        google_places.delete_place(added_place.reference)
+    except GooglePlacesError as error_detail:
+        # You've passed in parameter values that the Places API doesn't like..
+        print error_detail
 
 
 Reference
@@ -114,7 +127,34 @@ googleplaces.GooglePlaces
     Returns a detailed instance of googleplaces.Place
 
   checkin(reference, sensor=False)
-    Checks in an anonynomous user in to the Place that matches the reference.
+    Checks in an anonymous user in to the Place that matches the reference.
+      kwargs:
+        reference   -- The unique Google reference for the required place.
+        sensor      -- Boolean flag denoting if the location came from a device
+                       using its location sensor (default False).
+
+  add_place(**kwargs)
+    Returns a dict containing the following keys: reference, id.
+      kwargs:
+        name        -- The full text name of the Place. Limited to 255
+                       characters.
+        lat_lng     -- A dict containing the following keys: lat, lng.
+        accuracy    -- The accuracy of the location signal on which this request
+                       is based, expressed in meters.
+        types       -- The category in which this Place belongs. Only one type
+                       can currently be specified for a Place. A string or
+                       single element list may be passed in.
+        language    -- The language in which the Place's name is being reported.
+                       (default googleplaces.lang.ENGLISH).
+        sensor      -- Boolean flag denoting if the location came from a device
+                       using its location sensor (default False).
+
+  delete_place(reference, sensor=False)
+    Deletes a place from the Google Places database.
+      kwargs:
+        reference   -- The unique Google reference for the required place.
+        sensor      -- Boolean flag denoting if the location came from a device
+                       using its location sensor (default False).
 
 
 googleplaces.GooglePlacesSearchResult
@@ -128,6 +168,7 @@ googleplaces.GooglePlacesSearchResult
   html_attributions()
     Returns a List of String html attributions that must be displayed along with
     the search results.
+
 
 googleplaces.Place
   reference
