@@ -82,6 +82,26 @@ def _get_place_details(reference, api_key, sensor=False):
     _validate_response(url, detail_response)
     return detail_response['result']
 
+def _get_place_photo(photoreference, api_key, maxheight=None, maxwidth=None, sensor=False):
+    """Gets a place's photo by refernce.
+    See detailed docuntation at https://developers.google.com/places/documentation/photos
+
+    Arguments:
+    photoreference -- The unique Google reference for the required photo.
+
+    Keyword arguments:
+    maxheight -- The maximum desired photo height in pixels
+    maxwidth -- The maximum desired photo width in pixels
+
+    You must specify one of this keyword arguments. Acceptable value is an integer between 1 and 1600.
+    """
+    url, detail_response = _fetch_remote_json(GooglePlaces.PHOTO_API_URL,
+                                              {'photoreference': photoreference,
+                                               'sensor': str(sensor).lower(),
+                                               'key': api_key})
+    _validate_response(url, detail_response)
+    # return detail_response['result']
+
 def _validate_response(url, response):
     """Validates that the response from Google was successful."""
     if response['status'] not in [GooglePlaces.RESPONSE_STATUS_OK,
@@ -126,6 +146,7 @@ class GooglePlaces(object):
                    'sensor=%s&key=%s')
     DELETE_API_URL = ('https://maps.googleapis.com/maps/api/place/delete/' +
                       'json?sensor=%s&key=%s')
+    PHOTO_API_URL = 'https://maps.googleapis.com/maps/api/place/photo/'
 
     MAXIMUM_SEARCH_RADIUS = 50000
     RESPONSE_STATUS_OK = 'OK'
