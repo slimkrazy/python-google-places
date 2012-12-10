@@ -19,6 +19,7 @@ except ImportError:
     import simplejson as json
 import urllib
 import urllib2
+import cgi
 
 import lang
 import ranking
@@ -31,19 +32,42 @@ __version__ = '0.9.1'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
-def _fetch_remote_json(service_url, params={}, use_http_post=False):
-    """Retrieves a JSON object from a URL."""
+class cached_property(object):
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, instance, cls=None):
+        result = instance.__dict__[self.func.__name__] = self.func(instance)
+        return result
+
+def _fetch_remote(service_url, params={}, use_http_post=False):
+    encoded_data = urllib.urlencode(params)
+
     if not use_http_post:
-        encoded_data = urllib.urlencode(params)
         query_url = (service_url if service_url.endswith('?') else
                      '%s?' % service_url)
         request_url = query_url + encoded_data
         request = urllib2.Request(request_url)
     else:
         request_url = service_url
-        request = urllib2.Request(service_url, data=params)
-    response = urllib2.urlopen(request)
+        request = urllib2.Request(service_url, data=encoded_data)
+    return (request_url, urllib2.urlopen(request))
+
+def _fetch_remote_json(service_url, params={}, use_http_post=False):
+    """Retrieves a JSON object from a URL."""
+    request_url, response = _fetch_remote(service_url, params, use_http_post)
     return (request_url, json.load(response))
+
+def _fetch_remote_file(service_url, params={}, use_http_post=False):
+    """Retrieves a file from a URL.
+
+    Returns a tuple (mimetype, filename, data)
+    """
+    request_url, response = _fetch_remote(service_url, params, use_http_post)
+    dummy, params = cgi.parse_header(response.headers.get('Content-Disposition', ''))
+    fn = params['filename']
+
+    return response.headers.get('content-type'), fn, response.read()
 
 def geocode_location(location, sensor=False):
     """Converts a human-readable location to lat-lng.
@@ -61,7 +85,7 @@ def geocode_location(location, sensor=False):
 
     url, geo_response = _fetch_remote_json(
             GooglePlaces.GEOCODE_API_URL,
-            {'address': location, 'sensor': str(sensor).lower()})
+            {'address': location.encode('utf-8'), 'sensor': str(sensor).lower()})
     _validate_response(url, geo_response)
     if geo_response['status'] == GooglePlaces.RESPONSE_STATUS_ZERO_RESULTS:
         error_detail = ('Lat/Lng for location \'%s\' can\'t be determined.' %
@@ -82,7 +106,7 @@ def _get_place_details(reference, api_key, sensor=False):
     _validate_response(url, detail_response)
     return detail_response['result']
 
-def _get_place_photo(photoreference, api_key, maxheight=None, maxwidth=None, sensor=False):
+def _get_place_photo(photoreference, api_key, maxheigth=None, maxwidth=None, sensor=False):
     """Gets a place's photo by refernce.
     See detailed docuntation at https://developers.google.com/places/documentation/photos
 
@@ -90,17 +114,23 @@ def _get_place_photo(photoreference, api_key, maxheight=None, maxwidth=None, sen
     photoreference -- The unique Google reference for the required photo.
 
     Keyword arguments:
-    maxheight -- The maximum desired photo height in pixels
+    maxheigth -- The maximum desired photo height in pixels
     maxwidth -- The maximum desired photo width in pixels
 
     You must specify one of this keyword arguments. Acceptable value is an integer between 1 and 1600.
     """
-    url, detail_response = _fetch_remote_json(GooglePlaces.PHOTO_API_URL,
-                                              {'photoreference': photoreference,
-                                               'sensor': str(sensor).lower(),
-                                               'key': api_key})
-    _validate_response(url, detail_response)
-    # return detail_response['result']
+
+    params = {'photoreference': photoreference,
+              'sensor': str(sensor).lower(),
+              'key': api_key}
+
+    if maxheigth:
+        params['maxheigth'] = maxheigth
+
+    if maxwidth:
+        params['maxwidth'] = maxwidth
+
+    return _fetch_remote_file(GooglePlaces.PHOTO_API_URL, params)
 
 def _validate_response(url, response):
     """Validates that the response from Google was successful."""
@@ -146,7 +176,7 @@ class GooglePlaces(object):
                    'sensor=%s&key=%s')
     DELETE_API_URL = ('https://maps.googleapis.com/maps/api/place/delete/' +
                       'json?sensor=%s&key=%s')
-    PHOTO_API_URL = 'https://maps.googleapis.com/maps/api/place/photo/'
+    PHOTO_API_URL = 'https://maps.googleapis.com/maps/api/place/photo?'
 
     MAXIMUM_SEARCH_RADIUS = 50000
     RESPONSE_STATUS_OK = 'OK'
@@ -209,7 +239,7 @@ class GooglePlaces(object):
         if len(types) > 0:
             self._request_params['types'] = '|'.join(types)
         if keyword is not None:
-            self._request_params['keyword'] = keyword
+            self._request_params['keyword'] = keyword.encode('utf-8')
         if name is not None:
             self._request_params['name'] = name
         if language is not None:
@@ -538,8 +568,35 @@ class Place(object):
                     self.reference, self._query_instance.api_key,
                     self._query_instance.sensor)
 
+    @cached_property
+    def photos(self):
+        self.get_details()
+        return map(lambda i: Photo(self._query_instance, i), self.details.get('photos', []))
+
     def _validate_status(self):
         if self._details is None:
             error_detail = ('The attribute requested is only available after ' +
                     'an explicit call to get_details() is made.')
             raise GooglePlacesAttributeError, error_detail
+
+
+class Photo(object):
+    def __init__(self, query_instance, attrs):
+        self._query_instance = query_instance
+        self.orig_height = attrs.get('height')
+        self.orig_width = attrs.get('width')
+        self.html_attributions = attrs.get('html_attributions')
+        self.photo_reference = attrs.get('photo_reference')
+
+    def get(self, maxheigth=None, maxwidth=None, sensor=False):
+        """Fetch photo from API."""
+
+        if not maxheigth and not maxwidth:
+            raise GooglePlacesError, 'You must specify maxheigth or maxwidth!'
+
+        mimetype, fn, photo_data = _get_place_photo(self.photo_reference, self._query_instance.api_key,
+                                                maxheigth=maxheigth, maxwidth=maxwidth, sensor=sensor)
+
+        self.mimetype = mimetype
+        self.photo_data = photo_data
+        self.filename = fn
