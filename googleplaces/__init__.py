@@ -333,7 +333,7 @@ class GooglePlacesSearchResult(object):
         self._places = []
         for place in response['results']:
             self._places.append(Place(query_instance, place))
-        self._html_attributions = response['html_attributions']
+        self._html_attributions = response.get('html_attributions', [])
 
     @property
     def places(self):
