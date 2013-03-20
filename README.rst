@@ -75,6 +75,8 @@ Code is easier to understand than words, so let us dive right in ::
             photo.get(maxheight=500, maxwidth=500)
             # MIME-type, e.g. 'image/jpeg'
             photo.mimetype
+            # Image URL
+            photo.url
             # Original filename (optional)
             photo.filename
             # Raw image data

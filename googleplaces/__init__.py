@@ -32,6 +32,7 @@ __version__ = '0.9.1'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
+
 class cached_property(object):
     def __init__(self, func):
         self.func = func
@@ -39,6 +40,7 @@ class cached_property(object):
     def __get__(self, instance, cls=None):
         result = instance.__dict__[self.func.__name__] = self.func(instance)
         return result
+
 
 def _fetch_remote(service_url, params={}, use_http_post=False):
     encoded_data = urllib.urlencode(params)
@@ -67,7 +69,7 @@ def _fetch_remote_file(service_url, params={}, use_http_post=False):
     dummy, params = cgi.parse_header(response.headers.get('Content-Disposition', ''))
     fn = params['filename']
 
-    return response.headers.get('content-type'), fn, response.read()
+    return response.headers.get('content-type'), fn, response.read(), response.geturl()
 
 def geocode_location(location, sensor=False):
     """Converts a human-readable location to lat-lng.
@@ -588,15 +590,12 @@ class Photo(object):
         self.html_attributions = attrs.get('html_attributions')
         self.photo_reference = attrs.get('photo_reference')
 
-    def get(self, maxheigth=None, maxwidth=None, sensor=False):
+    def get(self, maxheight=None, maxwidth=None, sensor=False):
         """Fetch photo from API."""
+        if not maxheight and not maxwidth:
+            raise GooglePlacesError, 'You must specify maxheight or maxwidth!'
 
-        if not maxheigth and not maxwidth:
-            raise GooglePlacesError, 'You must specify maxheigth or maxwidth!'
+        result = _get_place_photo(self.photo_reference, self._query_instance.api_key,
+                                  maxheight=maxheight, maxwidth=maxwidth, sensor=sensor)
 
-        mimetype, fn, data = _get_place_photo(self.photo_reference, self._query_instance.api_key,
-                                                maxheigth=maxheigth, maxwidth=maxwidth, sensor=sensor)
-
-        self.mimetype = mimetype
-        self.data = data
-        self.filename = fn
+        self.mimetype, self.filename, self.data, self.url = result
