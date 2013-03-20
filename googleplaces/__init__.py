@@ -85,7 +85,7 @@ def geocode_location(location, sensor=False):
 
     url, geo_response = _fetch_remote_json(
             GooglePlaces.GEOCODE_API_URL,
-            {'address': location.encode('utf-8'), 'sensor': str(sensor).lower()})
+            {'address': location, 'sensor': str(sensor).lower()})
     _validate_response(url, geo_response)
     if geo_response['status'] == GooglePlaces.RESPONSE_STATUS_ZERO_RESULTS:
         error_detail = ('Lat/Lng for location \'%s\' can\'t be determined.' %
@@ -106,7 +106,7 @@ def _get_place_details(reference, api_key, sensor=False):
     _validate_response(url, detail_response)
     return detail_response['result']
 
-def _get_place_photo(photoreference, api_key, maxheigth=None, maxwidth=None, sensor=False):
+def _get_place_photo(photoreference, api_key, maxheight=None, maxwidth=None, sensor=False):
     """Gets a place's photo by refernce.
     See detailed docuntation at https://developers.google.com/places/documentation/photos
 
@@ -114,7 +114,7 @@ def _get_place_photo(photoreference, api_key, maxheigth=None, maxwidth=None, sen
     photoreference -- The unique Google reference for the required photo.
 
     Keyword arguments:
-    maxheigth -- The maximum desired photo height in pixels
+    maxheight -- The maximum desired photo height in pixels
     maxwidth -- The maximum desired photo width in pixels
 
     You must specify one of this keyword arguments. Acceptable value is an integer between 1 and 1600.
@@ -124,8 +124,8 @@ def _get_place_photo(photoreference, api_key, maxheigth=None, maxwidth=None, sen
               'sensor': str(sensor).lower(),
               'key': api_key}
 
-    if maxheigth:
-        params['maxheigth'] = maxheigth
+    if maxheight:
+        params['maxheight'] = maxheight
 
     if maxwidth:
         params['maxwidth'] = maxwidth
@@ -239,7 +239,7 @@ class GooglePlaces(object):
         if len(types) > 0:
             self._request_params['types'] = '|'.join(types)
         if keyword is not None:
-            self._request_params['keyword'] = keyword.encode('utf-8')
+            self._request_params['keyword'] = keyword
         if name is not None:
             self._request_params['name'] = name
         if language is not None:
@@ -594,9 +594,9 @@ class Photo(object):
         if not maxheigth and not maxwidth:
             raise GooglePlacesError, 'You must specify maxheigth or maxwidth!'
 
-        mimetype, fn, photo_data = _get_place_photo(self.photo_reference, self._query_instance.api_key,
+        mimetype, fn, data = _get_place_photo(self.photo_reference, self._query_instance.api_key,
                                                 maxheigth=maxheigth, maxwidth=maxwidth, sensor=sensor)
 
         self.mimetype = mimetype
-        self.photo_data = photo_data
+        self.data = data
         self.filename = fn
