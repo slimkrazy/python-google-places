@@ -68,6 +68,20 @@ Code is easier to understand than words, so let us dive right in ::
         print place.website
         print place.url
 
+        # Getting place photos
+
+        for photo in place.photos:
+            # 'maxheight' or 'maxwidth' is required
+            photo.get(maxheight=500, maxwidth=500)
+            # MIME-type, e.g. 'image/jpeg'
+            photo.mimetype
+            # Image URL
+            photo.url
+            # Original filename (optional)
+            photo.filename
+            # Raw image data
+            photo.data
+
 
     # Adding and deleting a place
     try:
