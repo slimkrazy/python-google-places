@@ -13,13 +13,14 @@ production environment.
 @author: sam@slimkrazy.com
 """
 
+import cgi
 try:
     import json
 except ImportError:
     import simplejson as json
 import urllib
 import urllib2
-import cgi
+import warnings
 
 import lang
 import ranking
@@ -28,7 +29,7 @@ import types
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
            'geocode_location']
-__version__ = '0.9.1'
+__version__ = '0.10.0'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
@@ -66,10 +67,12 @@ def _fetch_remote_file(service_url, params={}, use_http_post=False):
     Returns a tuple (mimetype, filename, data)
     """
     request_url, response = _fetch_remote(service_url, params, use_http_post)
-    dummy, params = cgi.parse_header(response.headers.get('Content-Disposition', ''))
+    dummy, params = cgi.parse_header(
+            response.headers.get('Content-Disposition', ''))
     fn = params['filename']
 
-    return response.headers.get('content-type'), fn, response.read(), response.geturl()
+    return (response.headers.get('content-type'),
+            fn, response.read(), response.geturl())
 
 def geocode_location(location, sensor=False):
     """Converts a human-readable location to lat-lng.
@@ -108,9 +111,10 @@ def _get_place_details(reference, api_key, sensor=False):
     _validate_response(url, detail_response)
     return detail_response['result']
 
-def _get_place_photo(photoreference, api_key, maxheight=None, maxwidth=None, sensor=False):
-    """Gets a place's photo by refernce.
-    See detailed docuntation at https://developers.google.com/places/documentation/photos
+def _get_place_photo(photoreference, api_key, maxheight=None, maxwidth=None,
+                       sensor=False):
+    """Gets a place's photo by reference.
+    See detailed documentation at https://developers.google.com/places/documentation/photos
 
     Arguments:
     photoreference -- The unique Google reference for the required photo.
@@ -119,7 +123,8 @@ def _get_place_photo(photoreference, api_key, maxheight=None, maxwidth=None, sen
     maxheight -- The maximum desired photo height in pixels
     maxwidth -- The maximum desired photo width in pixels
 
-    You must specify one of this keyword arguments. Acceptable value is an integer between 1 and 1600.
+    You must specify one of this keyword arguments. Acceptable value is an
+    integer between 1 and 1600.
     """
 
     params = {'photoreference': photoreference,
@@ -169,7 +174,10 @@ class GooglePlaces(object):
     """A wrapper around the Google Places Query API."""
 
     GEOCODE_API_URL = 'https://maps.googleapis.com/maps/api/geocode/json?'
-    QUERY_API_URL = 'https://maps.googleapis.com/maps/api/place/search/json?'
+    NEARBY_SEARCH_API_URL = ('https://maps.googleapis.com/maps/api/place/' +
+                             'nearbysearch/json?')
+    TEXT_SEARCH_API_URL = ('https://maps.googleapis.com/maps/api/place/' +
+                             'textsearch/json?')
     DETAIL_API_URL = ('https://maps.googleapis.com/maps/api/place/details/' +
                       'json?')
     CHECKIN_API_URL = ('https://maps.googleapis.com/maps/api/place/check-in/' +
@@ -189,10 +197,17 @@ class GooglePlaces(object):
         self._sensor = False
         self._request_params = None
 
-    def query(self, language=lang.ENGLISH, keyword=None, location=None,
+    def query(self, **kwargs):
+        with warnings.catch_warnings():
+            warnings.simplefilter('always')
+            warnings.warn('The query API is deprecated. Please use nearby_search.',
+                          DeprecationWarning, stacklevel=2)
+        return self.nearby_search(**kwargs)
+
+    def nearby_search(self, language=lang.ENGLISH, keyword=None, location=None,
                lat_lng=None, name=None, radius=3200, rankby=ranking.PROMINENCE,
                sensor=False, types=[]):
-        """Perform a search using the Google Places API.
+        """Perform a nearby search using the Google Places API.
 
         One of either location or lat_lng are required, the rest of the keyword
         arguments are optional.
@@ -203,7 +218,7 @@ class GooglePlaces(object):
         location -- A human readable location, e.g 'London, England'
                     (default None)
         language -- The language code, indicating in which language the
-                    results should be returned, if possble. (default lang.ENGLISH)
+                    results should be returned, if possible. (default lang.ENGLISH)
         lat_lng  -- A dict containing the following keys: lat, lng
                     (default None)
         name     -- A term to be matched against the names of the Places.
@@ -248,7 +263,42 @@ class GooglePlaces(object):
             self._request_params['language'] = language
         self._add_required_param_keys()
         url, places_response = _fetch_remote_json(
-                GooglePlaces.QUERY_API_URL, self._request_params)
+                GooglePlaces.NEARBY_SEARCH_API_URL, self._request_params)
+        _validate_response(url, places_response)
+        return GooglePlacesSearchResult(self, places_response)
+
+    def text_search(self, query, language=lang.ENGLISH, lat_lng=None,
+                    radius=3200, types=[]):
+        """Perform a text search using the Google Places API.
+
+        Only the query kwarg is required, the rest of the keyword arguments
+        are optional.
+
+        keyword arguments:
+        lat_lng  -- A dict containing the following keys: lat, lng
+                    (default None)
+        radius   -- The radius (in meters) around the location/lat_lng to
+                    restrict the search to. The maximum is 50000 meters.
+                    (default 3200)
+        query    -- The text string on which to search, for example:
+                    "Restaurant in New York".
+        location -- A human readable location, e.g 'London, England'
+                    (default None)
+        types    -- An optional list of types, restricting the results to
+                    Places (default []).
+        """
+        self._request_params = {'query': query}
+        if lat_lng is not None:
+            lat_lng_str = '%(lat)s,%(lng)s' % self._lat_lng
+            self._request_params['location'] = lat_lng_str
+        self._request_params['radius'] = radius
+        if len(types) > 0:
+            self._request_params['types'] = '|'.join(types)
+        if language is not None:
+            self._request_params['language'] = language
+        self._add_required_param_keys()
+        url, places_response = _fetch_remote_json(
+                GooglePlaces.TEXT_SEARCH_API_URL, self._request_params)
         _validate_response(url, places_response)
         return GooglePlacesSearchResult(self, places_response)
 
@@ -573,7 +623,8 @@ class Place(object):
     @cached_property
     def photos(self):
         self.get_details()
-        return map(lambda i: Photo(self._query_instance, i), self.details.get('photos', []))
+        return map(lambda i: Photo(self._query_instance, i),
+                   self.details.get('photos', []))
 
     def _validate_status(self):
         if self._details is None:
@@ -595,7 +646,9 @@ class Photo(object):
         if not maxheight and not maxwidth:
             raise GooglePlacesError, 'You must specify maxheight or maxwidth!'
 
-        result = _get_place_photo(self.photo_reference, self._query_instance.api_key,
-                                  maxheight=maxheight, maxwidth=maxwidth, sensor=sensor)
+        result = _get_place_photo(self.photo_reference,
+                                  self._query_instance.api_key,
+                                  maxheight=maxheight, maxwidth=maxwidth,
+                                  sensor=sensor)
 
         self.mimetype, self.filename, self.data, self.url = result

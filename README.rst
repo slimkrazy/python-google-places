@@ -44,7 +44,8 @@ Code is easier to understand than words, so let us dive right in ::
 
     google_places = GooglePlaces(YOUR_API_KEY)
 
-    query_result = google_places.query(
+    # You may prefer to use the text_search API, instead.
+    query_result = google_places.nearby_search(
             location='London, England', keyword='Fish and Chips',
             radius=20000, types=[types.TYPE_FOOD])
 
@@ -116,7 +117,7 @@ Reference
 
 
     googleplaces.GooglePlaces
-      query(**kwargs)
+      nearby_search(**kwargs)
         Returns googleplaces.GooglePlacesSearchResult
           kwargs:
             keyword  -- A term to be matched against all available fields, including but
@@ -140,6 +141,23 @@ Reference
 
             sensor   -- Indicates whether or not the Place request came from a device
                         using a location sensor (default False)
+
+            types    -- An optional list of types, restricting the results to Places (default [])
+
+
+      text_search(**kwargs)
+        Returns googleplaces.GooglePlacesSearchResult
+          kwargs:
+            query  --  The text string on which to search, for example:
+                       "Restaurant in New York".
+
+            lat_lng  -- A dict containing the following keys: lat, lng (default None)
+
+            language -- The language code, indicating in which language the results
+                        should be returned, if possble. (default en)
+
+            radius   -- The radius (in meters) around the location/lat_lng to restrict
+                        the search to. The maximum is 50000 meters (default 3200)
 
             types    -- An optional list of types, restricting the results to Places (default [])
 
@@ -184,7 +202,7 @@ Reference
           kwargs:
             reference   -- The unique Google reference for the required place.
 
-            sensor      -- Boolean flag denoting if the location came from a 
+            sensor      -- Boolean flag denoting if the location came from a
                            device using its location sensor (default False).
 
 
@@ -209,8 +227,8 @@ Reference
 
       id
         Returns a unique stable identifier denoting this Place. This identifier
-        may not be used to retrieve information about this Place, but can be used 
-        to consolidate data about this Place, and to verify the identity of a 
+        may not be used to retrieve information about this Place, but can be used
+        to consolidate data about this Place, and to verify the identity of a
         Place across separate searches
 
       icon
