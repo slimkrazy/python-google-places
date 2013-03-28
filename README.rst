@@ -256,6 +256,9 @@ Reference
         This property will raise a googleplaces.GooglePlacesAttributeError if it is
         referenced prior to get_details()
 
+      photos
+        returns a list of available googleplaces.Photo objects.
+
       formatted_address
         Returns a string containing the human-readable address of this place. Often
         this address is equivalent to the "postal address".
@@ -294,3 +297,37 @@ Reference
       get_details()
         Retrieves full information on the place matching the reference.
 
+
+    googleplaces.Photo
+      orig_height
+        the maximum height of the origin image.
+
+      orig_width
+        the maximum height of the origin image.
+
+      html_attributions
+         Contains any required attributions. This field will always be present,
+         but may be empty.
+
+      photo_reference
+         A string used to identify the photo when you perform a Photo request
+         via the get method.
+
+      get
+        Fetches the actual photo data from the Google places API.
+
+      mimetype
+        Specifies the mimetype if the fetched image. This property is only
+        available after the get API has been invoked.
+
+      filename
+        Specifies the filename of the fetched image. This property is only
+        available after the get API has been invoked.
+
+      data
+        The binary data of the image. This property is only available after the
+        get API has been invoked.
+
+      url
+        The url of the image. This property is only available after the get API
+        has been invoked.
