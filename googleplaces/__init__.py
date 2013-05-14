@@ -29,7 +29,7 @@ import types
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
            'geocode_location']
-__version__ = '0.10.0'
+__version__ = '0.10.1'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
@@ -289,7 +289,7 @@ class GooglePlaces(object):
         """
         self._request_params = {'query': query}
         if lat_lng is not None:
-            lat_lng_str = '%(lat)s,%(lng)s' % self._lat_lng
+            lat_lng_str = '%(lat)s,%(lng)s' % lat_lng
             self._request_params['location'] = lat_lng_str
         self._request_params['radius'] = radius
         if len(types) > 0:
