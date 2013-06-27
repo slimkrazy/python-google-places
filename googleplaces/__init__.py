@@ -251,9 +251,11 @@ class GooglePlaces(object):
         if location is None and lat_lng is None:
             raise ValueError('One of location or lat_lng must be passed in.')
         if rankby == 'distance':
-            if keyword is None and types == []:
+            # As per API docs rankby == distance:
+            #  One or more of keyword, name, or types is required.
+            if keyword is None and types == [] and name is None:
                 raise ValueError('When rankby = googleplaces.ranking.DISTANCE, ' +
-                                 'one of either the keyword or types kwargs ' +
+                                 'name, keyword or types kwargs ' +
                                  'must be specified.')
         self._sensor = sensor
         self._lat_lng = (lat_lng if lat_lng is not None
