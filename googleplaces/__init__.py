@@ -174,6 +174,7 @@ class GooglePlaces(object):
     """A wrapper around the Google Places Query API."""
 
     GEOCODE_API_URL = 'https://maps.googleapis.com/maps/api/geocode/json?'
+    RADAR_SEARCH_API_URL = ('https://maps.googleapis.com/maps/api/place/radarsearch/json?')
     NEARBY_SEARCH_API_URL = ('https://maps.googleapis.com/maps/api/place/' +
                              'nearbysearch/json?')
     TEXT_SEARCH_API_URL = ('https://maps.googleapis.com/maps/api/place/' +
@@ -301,6 +302,25 @@ class GooglePlaces(object):
                 GooglePlaces.TEXT_SEARCH_API_URL, self._request_params)
         _validate_response(url, places_response)
         return GooglePlacesSearchResult(self, places_response)
+        
+    def radar_search(self, sensor = False, keyword = None, language = lang.ENGLISH, lat_lng=None, radius = 3200, types = []):
+        if keyword is not None:
+            self._request_params = {'keyword': keyword}
+        self._sensor = sensor    
+        if lat_lng is not None:
+            lat_lng_str = '%(lat)s,%(lng)s' % lat_lng
+            self._request_params['location'] = lat_lng_str
+        self._request_params['radius'] = radius
+        if len(types) > 0:
+            self._request_params['types'] = '|'.join(types)
+        if language is not None:
+            self._request_params['language'] = language
+        self._add_required_param_keys()
+        url, places_response = _fetch_remote_json(
+                GooglePlaces.RADAR_SEARCH_API_URL, self._request_params)
+        _validate_response(url, places_response)
+        return GooglePlacesSearchResult(self, places_response)
+        
 
     def checkin(self, reference, sensor=False):
         """Checks in a user to a place.
@@ -466,12 +486,12 @@ class Place(object):
         self._query_instance = query_instance
         self._id = place_data['id']
         self._reference = place_data['reference']
-        self._name = place_data['name']
+        self._name = place_data.get('name','')
         self._vicinity = place_data.get('vicinity', '')
         self._geo_location = place_data['geometry']['location']
-        self._rating = place_data.get('rating')
-        self._types = place_data.get('types')
-        self._icon = place_data.get('icon')
+        self._rating = place_data.get('rating','')
+        self._types = place_data.get('types','')
+        self._icon = place_data.get('icon','')
         if place_data.get('address_components') is None:
             self._details = None
         else:
@@ -503,11 +523,15 @@ class Place(object):
     @property
     def icon(self):
         """Returns the URL of a recommended icon for display."""
+        if self._icon == '' and self.details != None and 'icon' in self.details:
+            self._icon = self.details['icon']
         return self._icon
 
     @property
     def types(self):
         """Returns a list of feature types describing the given result."""
+        if self._types == '' and self.details != None and 'types' in self.details:
+            self._icon = self.details['types']
         return self._types
 
     @property
@@ -521,6 +545,8 @@ class Place(object):
     @property
     def name(self):
         """Returns the human-readable name of the place."""
+        if self._name == '' and self.details != None and 'name' in self.details:
+        	self._name = self.details['name']
         return self._name
 
     @property
@@ -530,6 +556,8 @@ class Place(object):
         Often this feature refers to a street or neighborhood within the given
         results.
         """
+        if self._vicinity == '' and self.details != None and 'vicinity' in self.details:
+        	self._vicinity = self.details['vicinity']
         return self._vicinity
 
     @property
@@ -538,6 +566,8 @@ class Place(object):
 
         This method will return None for places that have no rating.
         """
+        if self._rating == '' and self.details != None and 'rating' in self.details:
+        	self._rating = self.details['rating']
         return self._rating
 
     # The following properties require a further API call in order to be
