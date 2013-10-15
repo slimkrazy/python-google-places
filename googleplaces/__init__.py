@@ -303,7 +303,28 @@ class GooglePlaces(object):
         _validate_response(url, places_response)
         return GooglePlacesSearchResult(self, places_response)
         
-    def radar_search(self, sensor = False, keyword = None, language = lang.ENGLISH, lat_lng=None, radius = 3200, types = []):
+    def radar_search(self, sensor=False, keyword=None, language=lang.ENGLISH, lat_lng=None,
+                     radius=3200, types=[]):
+        """Perform a radar search using the Google Places API.
+
+        lat_lng are required, the rest of the keyword arguments are optional.
+
+        keyword arguments:
+        keyword  -- A term to be matched against all available fields, including
+                    but not limited to name, type, and address (default None)
+        language -- The language code, indicating in which language the
+                    results should be returned, if possible. (default lang.ENGLISH)
+        lat_lng  -- A dict containing the following keys: lat, lng
+                    (default None)
+        radius   -- The radius (in meters) around the location/lat_lng to
+                    restrict the search to. The maximum is 50000 meters.
+                    (default 3200)
+        sensor   -- Indicates whether or not the Place request came from a
+                    device using a location sensor (default False).
+        types    -- An optional list of types, restricting the results to
+                    Places (default []).
+        """
+        
         if keyword is not None:
             self._request_params = {'keyword': keyword}
         self._sensor = sensor    
