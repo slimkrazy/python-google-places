@@ -161,6 +161,31 @@ Reference
 
             types    -- An optional list of types, restricting the results to Places (default [])
 
+      radar_search(**kwargs)
+        Returns googleplaces.GooglePlacesSearchResult
+          kwargs:
+            keyword  -- A term to be matched against all available fields, including
+                        but not limited to name, type, and address (default None)
+
+            name     -- A term to be matched against the names of Places. Results will
+                        be restricted to those containing the passed name value.
+
+	    openname -- Returns only those Places that are open for business at the time
+                        the query is sent
+
+            lat_lng  -- A dict containing the following keys: lat, lng (default None)
+
+            language -- The language code, indicating in which language the results
+                        should be returned, if possble. (default en)
+
+            radius   -- The radius (in meters) around the location/lat_lng to restrict
+                        the search to. The maximum is 50000 meters (default 3200)
+
+            sensor   -- Indicates whether or not the Place request came from a
+                        device using a location sensor (default False).
+
+            types    -- An optional list of types, restricting the results to Places (default [])
+
 
       get_place(reference)
         Returns a detailed instance of googleplaces.Place

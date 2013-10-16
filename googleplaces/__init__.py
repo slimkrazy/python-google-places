@@ -303,7 +303,8 @@ class GooglePlaces(object):
         _validate_response(url, places_response)
         return GooglePlacesSearchResult(self, places_response)
         
-    def radar_search(self, sensor=False, keyword=None, language=lang.ENGLISH, lat_lng=None,
+    def radar_search(self, sensor=False, keyword=None, name=None, 
+                     language=lang.ENGLISH, lat_lng=None, opennow=False, 
                      radius=3200, types=[]):
         """Perform a radar search using the Google Places API.
 
@@ -312,6 +313,8 @@ class GooglePlaces(object):
         keyword arguments:
         keyword  -- A term to be matched against all available fields, including
                     but not limited to name, type, and address (default None)
+        name     -- A term to be matched against the names of Places. Results will
+                    be restricted to those containing the passed name value.
         language -- The language code, indicating in which language the
                     results should be returned, if possible. (default lang.ENGLISH)
         lat_lng  -- A dict containing the following keys: lat, lng
@@ -319,29 +322,47 @@ class GooglePlaces(object):
         radius   -- The radius (in meters) around the location/lat_lng to
                     restrict the search to. The maximum is 50000 meters.
                     (default 3200)
+        opennow  -- Returns only those Places that are open for business at the time
+                    the query is sent. (default False)
         sensor   -- Indicates whether or not the Place request came from a
                     device using a location sensor (default False).
         types    -- An optional list of types, restricting the results to
                     Places (default []).
         """
-        
-        if keyword is not None:
-            self._request_params = {'keyword': keyword}
-        self._sensor = sensor    
-        if lat_lng is not None:
+
+        if keyword is None and name is None and len(types) is 0:
+            raise ValueError('One of keyword, name or types must be supplied.')
+        if lat_lng is None:
+            raise ValueError('lat_lng must be passed in.')
+        try:
+            radius = int(radius)
+        except:
+            raise ValueError('radius must be passed supplied as an integer.')
+        if sensor not in [True, False]:
+            raise ValueError('sensor must be passed in as a boolean value.')
+
+        self._request_params = {'radius': radius}        
+        self._sensor = sensor
+        try:
             lat_lng_str = '%(lat)s,%(lng)s' % lat_lng
             self._request_params['location'] = lat_lng_str
-        self._request_params['radius'] = radius
+        except:
+            raise ValueError('lat_lng must be a dict with the keys, \'lat\' and \'lng\'')
+        if keyword is not None:
+            self._request_params['keyword'] = keyword
+        if name is not None:
+            self._request_params['name'] = name
         if len(types) > 0:
             self._request_params['types'] = '|'.join(types)
         if language is not None:
             self._request_params['language'] = language
+        if opennow is True:
+            self._request_params['opennow'] = 'true'
         self._add_required_param_keys()
         url, places_response = _fetch_remote_json(
                 GooglePlaces.RADAR_SEARCH_API_URL, self._request_params)
         _validate_response(url, places_response)
         return GooglePlacesSearchResult(self, places_response)
-        
 
     def checkin(self, reference, sensor=False):
         """Checks in a user to a place.
