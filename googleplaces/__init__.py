@@ -366,7 +366,7 @@ class GooglePlaces(object):
         sensor    -- Boolean flag denoting if the location came from a
                      device using its' location sensor (default False).
         """
-        place_details = _get_place_details(reference, self.api_key, sensor)
+        place_details = _get_place_details(reference, self.api_key, sensor, lang=lang)
         return Place(self, place_details)
 
     def add_place(self, **kwargs):
