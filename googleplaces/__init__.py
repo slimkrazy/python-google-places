@@ -358,7 +358,7 @@ class GooglePlaces(object):
                         self.api_key), json.dumps(data), use_http_post=True)
         _validate_response(url, checkin_response)
 
-    def get_place(self, reference, sensor=False):
+    def get_place(self, reference, sensor=False, lang='en'):
         """Gets a detailed place object.
 
         keyword arguments:
