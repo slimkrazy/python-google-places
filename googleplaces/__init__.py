@@ -19,7 +19,12 @@ try:
 except ImportError:
     import simplejson as json
 import urllib
-import urllib2
+
+# For compatibility with Python 3
+try:
+    from urllib import request as urllib2  # Python 3 import
+except ImportError:
+    import urllib2
 import warnings
 
 import lang
