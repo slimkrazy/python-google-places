@@ -12,6 +12,7 @@ production environment.
 
 @author: sam@slimkrazy.com
 """
+from __future__ import absolute_import
 
 import cgi
 try:
@@ -27,9 +28,9 @@ except ImportError:
     import urllib2
 import warnings
 
-import lang
-import ranking
-import types
+from . import lang
+from . import ranking
+from . import types
 
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
