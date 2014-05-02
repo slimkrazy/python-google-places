@@ -95,7 +95,7 @@ def geocode_location(location, sensor=False):
     if geo_response['status'] == GooglePlaces.RESPONSE_STATUS_ZERO_RESULTS:
         error_detail = ('Lat/Lng for location \'%s\' can\'t be determined.' %
                         location)
-        raise GooglePlacesError, error_detail
+        raise GooglePlacesError(error_detail)
     return geo_response['results'][0]['geometry']['location']
 
 def _get_place_details(reference, api_key, sensor=False):
@@ -145,7 +145,7 @@ def _validate_response(url, response):
                                   GooglePlaces.RESPONSE_STATUS_ZERO_RESULTS]:
         error_detail = ('Request to URL %s failed with response code: %s' %
                         (url, response['status']))
-        raise GooglePlacesError, error_detail
+        raise GooglePlacesError(error_detail)
 
 
 class GooglePlacesError(Exception):
@@ -302,7 +302,7 @@ class GooglePlaces(object):
                 GooglePlaces.TEXT_SEARCH_API_URL, self._request_params)
         _validate_response(url, places_response)
         return GooglePlacesSearchResult(self, places_response)
-        
+
     def radar_search(self, sensor=False, keyword=None, language=lang.ENGLISH, lat_lng=None,
                      radius=3200, types=[]):
         """Perform a radar search using the Google Places API.
@@ -324,10 +324,10 @@ class GooglePlaces(object):
         types    -- An optional list of types, restricting the results to
                     Places (default []).
         """
-        
+
         if keyword is not None:
             self._request_params = {'keyword': keyword}
-        self._sensor = sensor    
+        self._sensor = sensor
         if lat_lng is not None:
             lat_lng_str = '%(lat)s,%(lng)s' % lat_lng
             self._request_params['location'] = lat_lng_str
@@ -341,7 +341,7 @@ class GooglePlaces(object):
                 GooglePlaces.RADAR_SEARCH_API_URL, self._request_params)
         _validate_response(url, places_response)
         return GooglePlacesSearchResult(self, places_response)
-        
+
 
     def checkin(self, reference, sensor=False):
         """Checks in a user to a place.
@@ -681,7 +681,7 @@ class Place(object):
         if self._details is None:
             error_detail = ('The attribute requested is only available after ' +
                     'an explicit call to get_details() is made.')
-            raise GooglePlacesAttributeError, error_detail
+            raise GooglePlacesAttributeError(error_detail)
 
 
 class Photo(object):
@@ -695,7 +695,7 @@ class Photo(object):
     def get(self, maxheight=None, maxwidth=None, sensor=False):
         """Fetch photo from API."""
         if not maxheight and not maxwidth:
-            raise GooglePlacesError, 'You must specify maxheight or maxwidth!'
+            raise GooglePlacesError('You must specify maxheight or maxwidth!')
 
         result = _get_place_photo(self.photo_reference,
                                   self._query_instance.api_key,
