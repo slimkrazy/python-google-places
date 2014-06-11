@@ -44,7 +44,14 @@ class cached_property(object):
 
 
 def _fetch_remote(service_url, params={}, use_http_post=False):
-    encoded_data = urllib.urlencode(params)
+    encoded_data = {}
+    for k, v in params.items():
+        if type(v) in [str, unicode]:
+            v = v.encode('utf-8')
+
+        encoded_data[k] = v
+
+    encoded_data = urllib.urlencode(encoded_data)
 
     if not use_http_post:
         query_url = (service_url if service_url.endswith('?') else
