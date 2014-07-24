@@ -12,6 +12,7 @@ production environment.
 
 @author: sam@slimkrazy.com
 """
+from __future__ import absolute_import
 
 import cgi
 try:
@@ -19,12 +20,17 @@ try:
 except ImportError:
     import simplejson as json
 import urllib
-import urllib2
+
+# For compatibility with Python 3
+try:
+    from urllib import request as urllib2  # Python 3 import
+except ImportError:
+    import urllib2
 import warnings
 
-import lang
-import ranking
-import types
+from . import lang
+from . import ranking
+from . import types
 
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
@@ -95,7 +101,7 @@ def geocode_location(location, sensor=False):
     if geo_response['status'] == GooglePlaces.RESPONSE_STATUS_ZERO_RESULTS:
         error_detail = ('Lat/Lng for location \'%s\' can\'t be determined.' %
                         location)
-        raise GooglePlacesError, error_detail
+        raise GooglePlacesError(error_detail)
     return geo_response['results'][0]['geometry']['location']
 
 def _get_place_details(reference, api_key, sensor=False):
@@ -145,7 +151,7 @@ def _validate_response(url, response):
                                   GooglePlaces.RESPONSE_STATUS_ZERO_RESULTS]:
         error_detail = ('Request to URL %s failed with response code: %s' %
                         (url, response['status']))
-        raise GooglePlacesError, error_detail
+        raise GooglePlacesError(error_detail)
 
 
 class GooglePlacesError(Exception):
@@ -305,7 +311,7 @@ class GooglePlaces(object):
         
     def radar_search(self, sensor=False, keyword=None, name=None, 
                      language=lang.ENGLISH, lat_lng=None, opennow=False, 
-                     radius=3200, types=[]):
+                     radius=3200, types=[]): 
         """Perform a radar search using the Google Places API.
 
         lat_lng are required, the rest of the keyword arguments are optional.
@@ -329,7 +335,6 @@ class GooglePlaces(object):
         types    -- An optional list of types, restricting the results to
                     Places (default []).
         """
-
         if keyword is None and name is None and len(types) is 0:
             raise ValueError('One of keyword, name or types must be supplied.')
         if lat_lng is None:
@@ -588,7 +593,7 @@ class Place(object):
     def name(self):
         """Returns the human-readable name of the place."""
         if self._name == '' and self.details != None and 'name' in self.details:
-        	self._name = self.details['name']
+            self._name = self.details['name']
         return self._name
 
     @property
@@ -702,7 +707,7 @@ class Place(object):
         if self._details is None:
             error_detail = ('The attribute requested is only available after ' +
                     'an explicit call to get_details() is made.')
-            raise GooglePlacesAttributeError, error_detail
+            raise GooglePlacesAttributeError(error_detail)
 
 
 class Photo(object):
@@ -716,7 +721,7 @@ class Photo(object):
     def get(self, maxheight=None, maxwidth=None, sensor=False):
         """Fetch photo from API."""
         if not maxheight and not maxwidth:
-            raise GooglePlacesError, 'You must specify maxheight or maxwidth!'
+            raise GooglePlacesError('You must specify maxheight or maxwidth!')
 
         result = _get_place_photo(self.photo_reference,
                                   self._query_instance.api_key,
