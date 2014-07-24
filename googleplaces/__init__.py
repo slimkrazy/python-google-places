@@ -507,6 +507,7 @@ class GooglePlacesSearchResult(object):
 
     def __init__(self, query_instance, response):
         self._places = []
+        self._response = response
         for place in response['results']:
             self._places.append(Place(query_instance, place))
         self._html_attributions = response.get('html_attributions', [])
