@@ -232,6 +232,9 @@ Reference
 
 
     googleplaces.GooglePlacesSearchResult
+      raw_response
+        The raw JSON response returned by the Google Places API.
+ 
       places
         A list of summary googleplaces.Place instances.
 
