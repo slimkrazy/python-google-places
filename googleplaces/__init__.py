@@ -109,7 +109,7 @@ def geocode_location(location, sensor=False):
         raise GooglePlacesError(error_detail)
     return geo_response['results'][0]['geometry']['location']
 
-def _get_place_details(reference, api_key, sensor=False):
+def _get_place_details(reference, api_key, sensor=False, lang='en'):
     """Gets a detailed place response.
 
     keyword arguments:
@@ -118,7 +118,8 @@ def _get_place_details(reference, api_key, sensor=False):
     url, detail_response = _fetch_remote_json(GooglePlaces.DETAIL_API_URL,
                                               {'reference': reference,
                                                'sensor': str(sensor).lower(),
-                                               'key': api_key})
+                                               'key': api_key,
+                                               'language': lang})
     _validate_response(url, detail_response)
     return detail_response['result']
 
@@ -388,7 +389,7 @@ class GooglePlaces(object):
                         self.api_key), json.dumps(data), use_http_post=True)
         _validate_response(url, checkin_response)
 
-    def get_place(self, reference, sensor=False):
+    def get_place(self, reference, sensor=False, lang='en'):
         """Gets a detailed place object.
 
         keyword arguments:
@@ -396,7 +397,7 @@ class GooglePlaces(object):
         sensor    -- Boolean flag denoting if the location came from a
                      device using its' location sensor (default False).
         """
-        place_details = _get_place_details(reference, self.api_key, sensor)
+        place_details = _get_place_details(reference, self.api_key, sensor, lang=lang)
         return Place(self, place_details)
 
     def add_place(self, **kwargs):
@@ -691,7 +692,7 @@ class Place(object):
         self._query_instance.checkin(self.reference,
                                      self._query_instance.sensor)
 
-    def get_details(self):
+    def get_details(self, lang='en'):
         """Retrieves full information on the place matching the reference.
 
         Further attributes will be made available on the instance once this
@@ -700,7 +701,7 @@ class Place(object):
         if self._details is None:
             self._details = _get_place_details(
                     self.reference, self._query_instance.api_key,
-                    self._query_instance.sensor)
+                    self._query_instance.sensor, lang=lang)
 
     @cached_property
     def photos(self):
