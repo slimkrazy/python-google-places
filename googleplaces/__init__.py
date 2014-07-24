@@ -506,11 +506,16 @@ class GooglePlacesSearchResult(object):
     """Wrapper around the Google Places API query JSON response."""
 
     def __init__(self, query_instance, response):
-        self._places = []
         self._response = response
+        self._places = []
         for place in response['results']:
             self._places.append(Place(query_instance, place))
         self._html_attributions = response.get('html_attributions', [])
+
+    @property
+    def raw_response(self):
+        """Returns the raw JSON response returned by the Places API."""
+        return self._response
 
     @property
     def places(self):
