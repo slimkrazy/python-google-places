@@ -35,7 +35,7 @@ from . import types
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
            'geocode_location']
-__version__ = '0.11.0'
+__version__ = '0.11.1'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
@@ -109,7 +109,8 @@ def geocode_location(location, sensor=False):
         raise GooglePlacesError(error_detail)
     return geo_response['results'][0]['geometry']['location']
 
-def _get_place_details(reference, api_key, sensor=False, lang='en'):
+def _get_place_details(reference, api_key, sensor=False, 
+                       language=lang.ENGLISH):
     """Gets a detailed place response.
 
     keyword arguments:
@@ -119,7 +120,7 @@ def _get_place_details(reference, api_key, sensor=False, lang='en'):
                                               {'reference': reference,
                                                'sensor': str(sensor).lower(),
                                                'key': api_key,
-                                               'language': lang})
+                                               'language': language})
     _validate_response(url, detail_response)
     return detail_response['result']
 
@@ -391,15 +392,18 @@ class GooglePlaces(object):
                         self.api_key), json.dumps(data), use_http_post=True)
         _validate_response(url, checkin_response)
 
-    def get_place(self, reference, sensor=False, lang='en'):
+    def get_place(self, reference, sensor=False, language=lang.ENGLISH):
         """Gets a detailed place object.
 
         keyword arguments:
         reference -- The unique Google reference for the required place.
         sensor    -- Boolean flag denoting if the location came from a
                      device using its' location sensor (default False).
+        language -- The language code, indicating in which language the
+                    results should be returned, if possible. (default lang.ENGLISH)
         """
-        place_details = _get_place_details(reference, self.api_key, sensor, lang=lang)
+        place_details = _get_place_details(reference, 
+                self.api_key, sensor, language=language)
         return Place(self, place_details)
 
     def add_place(self, **kwargs):
@@ -700,16 +704,27 @@ class Place(object):
         self._query_instance.checkin(self.reference,
                                      self._query_instance.sensor)
 
-    def get_details(self, lang='en'):
+    def get_details(self, language=None):
         """Retrieves full information on the place matching the reference.
 
         Further attributes will be made available on the instance once this
         method has been invoked.
+
+        keyword arguments:
+        language -- The language code, indicating in which language the
+                    results should be returned, if possible. This value defaults
+                    to the language that was used to generate the
+                    GooglePlacesSearchResult instance.
         """
         if self._details is None:
+            if language is None:
+                try:
+                    language = self._query_instance._request_params['language']
+                except KeyError:
+                    language = lang.ENGLISH
             self._details = _get_place_details(
                     self.reference, self._query_instance.api_key,
-                    self._query_instance.sensor, lang=lang)
+                    self._query_instance.sensor, language=language)
 
     @cached_property
     def photos(self):

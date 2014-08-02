@@ -187,8 +187,15 @@ Reference
             types    -- An optional list of types, restricting the results to Places (default [])
 
 
-      get_place(reference)
+      get_place(**kwargs)
         Returns a detailed instance of googleplaces.Place
+          reference  -- The unique Google reference for the required place.
+
+          language   -- The language code, indicating in which language the results
+                        should be returned, if possble. (default en)
+
+          sensor     -- Indicates whether or not the Place request came from a
+                        device using a location sensor (default False).
 
 
       checkin(reference, sensor=False)
@@ -322,9 +329,13 @@ Reference
       checkin()
         Checks in an anonynomous user in.
 
-      get_details()
+      get_details(**kwargs)
         Retrieves full information on the place matching the reference.
-
+          kwargs:
+            language   -- The language code, indicating in which language the
+                          results should be returned, if possible. This value defaults
+                          to the language that was used to generate the
+                          GooglePlacesSearchResult instance.
 
     googleplaces.Photo
       orig_height
