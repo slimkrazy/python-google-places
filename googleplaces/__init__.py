@@ -12,6 +12,7 @@ production environment.
 
 @author: sam@slimkrazy.com
 """
+from __future__ import absolute_import
 
 import cgi
 try:
@@ -19,17 +20,22 @@ try:
 except ImportError:
     import simplejson as json
 import urllib
-import urllib2
+
+# For compatibility with Python 3
+try:
+    from urllib import request as urllib2  # Python 3 import
+except ImportError:
+    import urllib2
 import warnings
 
-import lang
-import ranking
-import types
+from . import lang
+from . import ranking
+from . import types
 
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
            'geocode_location']
-__version__ = '0.10.1'
+__version__ = '0.11.1'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
@@ -44,7 +50,12 @@ class cached_property(object):
 
 
 def _fetch_remote(service_url, params={}, use_http_post=False):
-    encoded_data = urllib.urlencode(params)
+    encoded_data = {}
+    for k, v in params.items():
+        if type(v) in [str, unicode]:
+            v = v.encode('utf-8')
+        encoded_data[k] = v
+    encoded_data = urllib.urlencode(encoded_data)
 
     if not use_http_post:
         query_url = (service_url if service_url.endswith('?') else
@@ -95,10 +106,11 @@ def geocode_location(location, sensor=False):
     if geo_response['status'] == GooglePlaces.RESPONSE_STATUS_ZERO_RESULTS:
         error_detail = ('Lat/Lng for location \'%s\' can\'t be determined.' %
                         location)
-        raise GooglePlacesError, error_detail
+        raise GooglePlacesError(error_detail)
     return geo_response['results'][0]['geometry']['location']
 
-def _get_place_details(reference, api_key, sensor=False):
+def _get_place_details(reference, api_key, sensor=False, 
+                       language=lang.ENGLISH):
     """Gets a detailed place response.
 
     keyword arguments:
@@ -107,7 +119,8 @@ def _get_place_details(reference, api_key, sensor=False):
     url, detail_response = _fetch_remote_json(GooglePlaces.DETAIL_API_URL,
                                               {'reference': reference,
                                                'sensor': str(sensor).lower(),
-                                               'key': api_key})
+                                               'key': api_key,
+                                               'language': language})
     _validate_response(url, detail_response)
     return detail_response['result']
 
@@ -145,7 +158,7 @@ def _validate_response(url, response):
                                   GooglePlaces.RESPONSE_STATUS_ZERO_RESULTS]:
         error_detail = ('Request to URL %s failed with response code: %s' %
                         (url, response['status']))
-        raise GooglePlacesError, error_detail
+        raise GooglePlacesError(error_detail)
 
 
 class GooglePlacesError(Exception):
@@ -239,9 +252,11 @@ class GooglePlaces(object):
         if location is None and lat_lng is None:
             raise ValueError('One of location or lat_lng must be passed in.')
         if rankby == 'distance':
-            if keyword is None and types == []:
+            # As per API docs rankby == distance:
+            #  One or more of keyword, name, or types is required.
+            if keyword is None and types == [] and name is None:
                 raise ValueError('When rankby = googleplaces.ranking.DISTANCE, ' +
-                                 'one of either the keyword or types kwargs ' +
+                                 'name, keyword or types kwargs ' +
                                  'must be specified.')
         self._sensor = sensor
         self._lat_lng = (lat_lng if lat_lng is not None
@@ -303,8 +318,9 @@ class GooglePlaces(object):
         _validate_response(url, places_response)
         return GooglePlacesSearchResult(self, places_response)
         
-    def radar_search(self, sensor=False, keyword=None, language=lang.ENGLISH, lat_lng=None,
-                     radius=3200, types=[]):
+    def radar_search(self, sensor=False, keyword=None, name=None, 
+                     language=lang.ENGLISH, lat_lng=None, opennow=False, 
+                     radius=3200, types=[]): 
         """Perform a radar search using the Google Places API.
 
         lat_lng are required, the rest of the keyword arguments are optional.
@@ -312,6 +328,8 @@ class GooglePlaces(object):
         keyword arguments:
         keyword  -- A term to be matched against all available fields, including
                     but not limited to name, type, and address (default None)
+        name     -- A term to be matched against the names of Places. Results will
+                    be restricted to those containing the passed name value.
         language -- The language code, indicating in which language the
                     results should be returned, if possible. (default lang.ENGLISH)
         lat_lng  -- A dict containing the following keys: lat, lng
@@ -319,29 +337,46 @@ class GooglePlaces(object):
         radius   -- The radius (in meters) around the location/lat_lng to
                     restrict the search to. The maximum is 50000 meters.
                     (default 3200)
+        opennow  -- Returns only those Places that are open for business at the time
+                    the query is sent. (default False)
         sensor   -- Indicates whether or not the Place request came from a
                     device using a location sensor (default False).
         types    -- An optional list of types, restricting the results to
                     Places (default []).
         """
-        
-        if keyword is not None:
-            self._request_params = {'keyword': keyword}
-        self._sensor = sensor    
-        if lat_lng is not None:
+        if keyword is None and name is None and len(types) is 0:
+            raise ValueError('One of keyword, name or types must be supplied.')
+        if lat_lng is None:
+            raise ValueError('lat_lng must be passed in.')
+        try:
+            radius = int(radius)
+        except:
+            raise ValueError('radius must be passed supplied as an integer.')
+        if sensor not in [True, False]:
+            raise ValueError('sensor must be passed in as a boolean value.')
+
+        self._request_params = {'radius': radius}        
+        self._sensor = sensor
+        try:
             lat_lng_str = '%(lat)s,%(lng)s' % lat_lng
             self._request_params['location'] = lat_lng_str
-        self._request_params['radius'] = radius
+        except:
+            raise ValueError('lat_lng must be a dict with the keys, \'lat\' and \'lng\'')
+        if keyword is not None:
+            self._request_params['keyword'] = keyword
+        if name is not None:
+            self._request_params['name'] = name
         if len(types) > 0:
             self._request_params['types'] = '|'.join(types)
         if language is not None:
             self._request_params['language'] = language
+        if opennow is True:
+            self._request_params['opennow'] = 'true'
         self._add_required_param_keys()
         url, places_response = _fetch_remote_json(
                 GooglePlaces.RADAR_SEARCH_API_URL, self._request_params)
         _validate_response(url, places_response)
         return GooglePlacesSearchResult(self, places_response)
-        
 
     def checkin(self, reference, sensor=False):
         """Checks in a user to a place.
@@ -357,15 +392,18 @@ class GooglePlaces(object):
                         self.api_key), json.dumps(data), use_http_post=True)
         _validate_response(url, checkin_response)
 
-    def get_place(self, reference, sensor=False):
+    def get_place(self, reference, sensor=False, language=lang.ENGLISH):
         """Gets a detailed place object.
 
         keyword arguments:
         reference -- The unique Google reference for the required place.
         sensor    -- Boolean flag denoting if the location came from a
                      device using its' location sensor (default False).
+        language -- The language code, indicating in which language the
+                    results should be returned, if possible. (default lang.ENGLISH)
         """
-        place_details = _get_place_details(reference, self.api_key, sensor)
+        place_details = _get_place_details(reference, 
+                self.api_key, sensor, language=language)
         return Place(self, place_details)
 
     def add_place(self, **kwargs):
@@ -474,10 +512,16 @@ class GooglePlacesSearchResult(object):
     """Wrapper around the Google Places API query JSON response."""
 
     def __init__(self, query_instance, response):
+        self._response = response
         self._places = []
         for place in response['results']:
             self._places.append(Place(query_instance, place))
         self._html_attributions = response.get('html_attributions', [])
+
+    @property
+    def raw_response(self):
+        """Returns the raw JSON response returned by the Places API."""
+        return self._response
 
     @property
     def places(self):
@@ -567,7 +611,7 @@ class Place(object):
     def name(self):
         """Returns the human-readable name of the place."""
         if self._name == '' and self.details != None and 'name' in self.details:
-        	self._name = self.details['name']
+            self._name = self.details['name']
         return self._name
 
     @property
@@ -660,16 +704,27 @@ class Place(object):
         self._query_instance.checkin(self.reference,
                                      self._query_instance.sensor)
 
-    def get_details(self):
+    def get_details(self, language=None):
         """Retrieves full information on the place matching the reference.
 
         Further attributes will be made available on the instance once this
         method has been invoked.
+
+        keyword arguments:
+        language -- The language code, indicating in which language the
+                    results should be returned, if possible. This value defaults
+                    to the language that was used to generate the
+                    GooglePlacesSearchResult instance.
         """
         if self._details is None:
+            if language is None:
+                try:
+                    language = self._query_instance._request_params['language']
+                except KeyError:
+                    language = lang.ENGLISH
             self._details = _get_place_details(
                     self.reference, self._query_instance.api_key,
-                    self._query_instance.sensor)
+                    self._query_instance.sensor, language=language)
 
     @cached_property
     def photos(self):
@@ -681,7 +736,7 @@ class Place(object):
         if self._details is None:
             error_detail = ('The attribute requested is only available after ' +
                     'an explicit call to get_details() is made.')
-            raise GooglePlacesAttributeError, error_detail
+            raise GooglePlacesAttributeError(error_detail)
 
 
 class Photo(object):
@@ -695,7 +750,7 @@ class Photo(object):
     def get(self, maxheight=None, maxwidth=None, sensor=False):
         """Fetch photo from API."""
         if not maxheight and not maxwidth:
-            raise GooglePlacesError, 'You must specify maxheight or maxwidth!'
+            raise GooglePlacesError('You must specify maxheight or maxwidth!')
 
         result = _get_place_photo(self.photo_reference,
                                   self._query_instance.api_key,

@@ -161,9 +161,41 @@ Reference
 
             types    -- An optional list of types, restricting the results to Places (default [])
 
+      radar_search(**kwargs)
+        Returns googleplaces.GooglePlacesSearchResult
+          kwargs:
+            keyword  -- A term to be matched against all available fields, including
+                        but not limited to name, type, and address (default None)
 
-      get_place(reference)
+            name     -- A term to be matched against the names of Places. Results will
+                        be restricted to those containing the passed name value.
+
+	    opennow --  Returns only those Places that are open for business at the time
+                        the query is sent
+
+            lat_lng  -- A dict containing the following keys: lat, lng (default None)
+
+            language -- The language code, indicating in which language the results
+                        should be returned, if possble. (default en)
+
+            radius   -- The radius (in meters) around the location/lat_lng to restrict
+                        the search to. The maximum is 50000 meters (default 3200)
+
+            sensor   -- Indicates whether or not the Place request came from a
+                        device using a location sensor (default False).
+
+            types    -- An optional list of types, restricting the results to Places (default [])
+
+
+      get_place(**kwargs)
         Returns a detailed instance of googleplaces.Place
+          reference  -- The unique Google reference for the required place.
+
+          language   -- The language code, indicating in which language the results
+                        should be returned, if possble. (default en)
+
+          sensor     -- Indicates whether or not the Place request came from a
+                        device using a location sensor (default False).
 
 
       checkin(reference, sensor=False)
@@ -207,6 +239,9 @@ Reference
 
 
     googleplaces.GooglePlacesSearchResult
+      raw_response
+        The raw JSON response returned by the Google Places API.
+ 
       places
         A list of summary googleplaces.Place instances.
 
@@ -294,9 +329,13 @@ Reference
       checkin()
         Checks in an anonynomous user in.
 
-      get_details()
+      get_details(**kwargs)
         Retrieves full information on the place matching the reference.
-
+          kwargs:
+            language   -- The language code, indicating in which language the
+                          results should be returned, if possible. This value defaults
+                          to the language that was used to generate the
+                          GooglePlacesSearchResult instance.
 
     googleplaces.Photo
       orig_height
