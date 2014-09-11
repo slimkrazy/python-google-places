@@ -314,8 +314,8 @@ class GooglePlaces(object):
         _validate_response(url, places_response)
         return GooglePlacesSearchResult(self, places_response)
 
-    def autocomplete(self, input, language=lang.ENGLISH, lat_lng=None,
-                    radius=3200, types=[], components=[]):
+    def autocomplete(self, input, location=None, radius=3200,
+                     language=lang.ENGLISH, types=[], components=[]):
         """
         Perform an autocomplete search using the Google Places API.
 
@@ -324,25 +324,26 @@ class GooglePlaces(object):
 
         keyword arguments:
         input    -- The text string on which to search, for example:
-                    "Restaurant in New York".
+                    "Hattie B's".
+        location -- Must be specified as latitude,longitude
+                    (default None)
         radius   -- The radius (in meters) around the location/lat_lng to
                     restrict the search to. The maximum is 50000 meters.
                     (default 3200)
-        location -- A human readable location, e.g 'London, England'
-                    (default None)
+        language -- The language code, indicating in which language the
+                    results should be returned, if possible. (default lang.ENGLISH)
         types    -- An optional list of types, restricting the results to
                     Places (default []).
         components -- An optional grouping of places to which you would
                     like to restrict your results. An array containing one or
                     more tuples of:
                     * country: matches a country name or a two letter ISO 3166-1 country code.
-
-                    [('country','US')]
+                    eg: [('country','US')]
         """
         self._request_params = {'input': input}
-        if lat_lng is not None:
-            lat_lng_str = '%(lat)s,%(lng)s' % lat_lng
-            self._request_params['location'] = lat_lng_str
+        if location is not None:
+            location_str = '%(lat)s,%(lng)s' % location
+            self._request_params['location'] = location_str
         self._request_params['radius'] = radius
         if len(types) > 0:
             self._request_params['types'] = '|'.join(types)
@@ -665,14 +666,6 @@ class Prediction(object):
         """Returns the JSON response from Google Places Detail search API."""
         self._validate_status()
         return self._place
-
-    # @property
-    # def geo_location(self):
-    #     """Returns the lat lng co-ordinates of the place.
-
-    #     A dict with the keys 'lat' and 'lng' will be returned.
-    #     """
-    #     return self._geo_location
 
     def get_details(self, language=None):
         """
