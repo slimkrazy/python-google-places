@@ -134,3 +134,11 @@ TYPE_SUBLOCALITY_LEVEL_2 = 'sublocality_level_2'
 TYPE_SUBLOCALITY_LEVEL_1 = 'sublocality_level_1'
 TYPE_SUBPREMISE = 'subpremise'
 TYPE_TRANSIT_STATION = 'transit_station'
+
+
+# autocomplete types
+AC_TYPE_GEOCODE = 'geocode'
+AC_TYPE_ADDDRESS = 'address'
+AC_TYPE_ESTABLISHMENT = 'establishment'
+AC_TYPE_REGIONS = '(regions)'
+AC_TYPE_CITIES = '(cities)'

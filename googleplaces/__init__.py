@@ -315,7 +315,7 @@ class GooglePlaces(object):
         return GooglePlacesSearchResult(self, places_response)
 
     def autocomplete(self, input, location=None, radius=3200,
-                     language=lang.ENGLISH, types=[], components=[]):
+                     language=lang.ENGLISH, types=None, components=[]):
         """
         Perform an autocomplete search using the Google Places API.
 
@@ -332,8 +332,9 @@ class GooglePlaces(object):
                     (default 3200)
         language -- The language code, indicating in which language the
                     results should be returned, if possible. (default lang.ENGLISH)
-        types    -- An optional list of types, restricting the results to
-                    Places (default []).
+        types    -- A type to search against. See `types.py` "autocomplete types"
+                    for complete list
+                    https://developers.google.com/places/documentation/autocomplete#place_types.
         components -- An optional grouping of places to which you would
                     like to restrict your results. An array containing one or
                     more tuples of:
@@ -345,8 +346,8 @@ class GooglePlaces(object):
             location_str = '%(lat)s,%(lng)s' % location
             self._request_params['location'] = location_str
         self._request_params['radius'] = radius
-        if len(types) > 0:
-            self._request_params['types'] = '|'.join(types)
+        if types:
+            self._request_params['types'] = types
         if len(components) > 0:
             self._request_params['components'] = '|'.join(['{}:{}'.format(c[0],c[1]) for c in components])
         if language is not None:
