@@ -327,8 +327,8 @@ class GooglePlaces(object):
                     "Hattie B's".
         location -- Must be specified as latitude,longitude
                     (default None)
-        radius   -- The radius (in meters) around the location/lat_lng to
-                    restrict the search to. The maximum is 50000 meters.
+        radius   -- The radius (in meters) around the location to which the
+                    search is to be restricted. The maximum is 50000 meters.
                     (default 3200)
         language -- The language code, indicating in which language the
                     results should be returned, if possible. (default lang.ENGLISH)
@@ -588,13 +588,14 @@ class Prediction(object):
     def description(self):
         """
         String representation of a Prediction location. Generally contains
-        name, country, and a portion of an address.
+        name, country, and elements contained in the terms property.
         """
         return self._description
 
     @property
     def id(self):
-        """Returns the unique stable identifier denoting this place.
+        """
+        Returns the deprecated id property.
 
         This identifier may not be used to retrieve information about this
         place, but is guaranteed to be valid across sessions. It can be used
@@ -617,7 +618,8 @@ class Prediction(object):
 
     @property
     def place_id(self):
-        """Returns the unique stable identifier denoting this place.
+        """
+        Returns the unique stable identifier denoting this place.
 
         This identifier may be used to retrieve information about this
         place.
@@ -629,7 +631,7 @@ class Prediction(object):
     @property
     def reference(self):
         """
-        Returns contains a unique token for the place.
+        Returns the deprecated reference property.
 
         The token can be used to retrieve additional information about this
         place when invoking the getPlace method on an GooglePlaces instance.
@@ -654,7 +656,9 @@ class Prediction(object):
 
     @property
     def types(self):
-        """Returns a list of feature types describing the given result."""
+        """
+        Returns a list of feature types describing the given result.
+        """
         if self._types == '' and self.details != None and 'types' in self.details:
             self._icon = self.details['types']
         return self._types
@@ -663,7 +667,9 @@ class Prediction(object):
     # available.
     @property
     def place(self):
-        """Returns the JSON response from Google Places Detail search API."""
+        """
+        Returns the JSON response from Google Places Detail search API.
+        """
         self._validate_status()
         return self._place
 
@@ -685,6 +691,9 @@ class Prediction(object):
             self._place = Place(self._query_instance, place)
 
     def _validate_status(self):
+        """
+        Indicates specific properties are only available after a details call.
+        """
         if self._place is None:
             error_detail = ('The attribute requested is only available after ' +
                     'an explicit call to get_details() is made.')
@@ -692,7 +701,9 @@ class Prediction(object):
 
 
 class GooglePlacesSearchResult(object):
-    """Wrapper around the Google Places API query JSON response."""
+    """
+    Wrapper around the Google Places API query JSON response.
+    """
 
     def __init__(self, query_instance, response):
         self._response = response
@@ -703,7 +714,9 @@ class GooglePlacesSearchResult(object):
 
     @property
     def raw_response(self):
-        """Returns the raw JSON response returned by the Places API."""
+        """
+        Returns the raw JSON response returned by the Places API.
+        """
         return self._response
 
     @property
