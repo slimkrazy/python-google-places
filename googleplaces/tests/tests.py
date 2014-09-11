@@ -7,8 +7,12 @@ Unit tests for google places.
 from random import randint
 import unittest
 
-from googleplaces import GooglePlaces, GooglePlacesSearchResult
-from testfixtures import PLACES_QUERY_RESPONSE
+from googleplaces import (
+    GooglePlaces,
+    GooglePlacesSearchResult,
+    GoogleAutocompleteSearchResult,
+)
+from testfixtures import PLACES_QUERY_RESPONSE, AUTOCOMPLETE_QUERY_RESPONSE
 
 DUMMY_API_KEY = 'foobarbaz'
 
@@ -21,18 +25,16 @@ class Test(unittest.TestCase):
     def tearDown(self):
         self._places_instance = None
 
-
-    def testSuccessfulResponse(self):
+    def testSuccessfulPlaceResponse(self):
         query_result = GooglePlacesSearchResult(
                 self._places_instance,
                 PLACES_QUERY_RESPONSE)
-        self.assertEqual(5, len(query_result.places),
-                         'Place count is incorrect.')
-        place_index = randint(0, len(query_result.places))
+
+        self.assertEqual(5, len(query_result.places), 'Place count is incorrect.')
+        place_index = randint(0, len(query_result.places)-1)
         place = query_result.places[place_index]
         response_place_entity = PLACES_QUERY_RESPONSE['results'][place_index]
-        self.assertEqual(place.id, response_place_entity.get('id'),
-                         'ID value is incorrect.')
+        self.assertEqual(place.id, response_place_entity.get('id'), 'ID value is incorrect.')
         self.assertEqual(
                          place.reference,
                          response_place_entity.get('reference'),
@@ -45,10 +47,66 @@ class Test(unittest.TestCase):
                 place.geo_location,
                 response_place_entity['geometry']['location'],
                 'Geo-location value is incorrect.')
-        self.assertEqual(place.rating, response_place_entity.get('rating'),
-                         'Rating value is incorrect.')
-        #TODO: Testing of data pulled by the details API - Requires mocking.
+
+    def testSuccessfulAutocompleteResponse(self):
+        query_result = GoogleAutocompleteSearchResult(
+                self._places_instance,
+                AUTOCOMPLETE_QUERY_RESPONSE)
+
+        self.assertEqual(5, len(query_result.predictions), 'Prediction count is incorrect.')
+        prediction_index = randint(0, len(query_result.predictions)-1)
+        prediction = query_result.predictions[prediction_index]
+        response_prediction_entity = AUTOCOMPLETE_QUERY_RESPONSE['predictions'][prediction_index]
+        self.assertEqual(prediction.id, response_prediction_entity.get('id'), 'ID value is incorrect.')
+        self.assertEqual(
+                         prediction.place_id,
+                         response_prediction_entity.get('place_id'),
+                         'Place ID value is incorrect.')
+        self.assertEqual(
+                         prediction.reference,
+                         response_prediction_entity.get('reference'),
+                         'Reference value is incorrect.')
+        self.assertEqual(prediction.description,
+                         response_prediction_entity.get('description'),
+                         'Description value is incorrect.')
+        self.assertEqual(prediction.types,
+                         response_prediction_entity.get('types'),
+                         'Types value is incorrect.')
 
 
 if __name__ == "__main__":
     unittest.main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
