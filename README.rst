@@ -167,7 +167,7 @@ Reference
             input  --   The text string on which to search, for example:
                         "Hattie B's".
 
-            lot_lng -- A dict containing the following keys: lat, lng (default None)
+            lat_lng -- A dict containing the following keys: lat, lng (default None)
 
             radius   -- The radius (in meters) around the location to which the
                         search is to be restricted. The maximum is 50000 meters.
