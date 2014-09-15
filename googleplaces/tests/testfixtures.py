@@ -1,6 +1,5 @@
 """
 Sample JSON responses pulled from Google Places API.
-
 """
 
 PLACES_QUERY_RESPONSE = {
@@ -82,4 +81,79 @@ PLACES_QUERY_RESPONSE = {
       }
    ],
    "status" : "OK"
+}
+
+AUTOCOMPLETE_QUERY_RESPONSE = {
+    'predictions': [
+        {
+            'description': u"Hattie B's Hot Chicken, 19th Avenue South, Nashville, TN, United States",
+            'id': '8d41b3887c71f5240a26d8b5badc792708e5ea2a',
+            'matched_substrings': [{'length': 6, 'offset': 0}],
+            'place_id': 'ChIJSbQCipNmZIgRm4c6Nz9sGaE',
+            'reference': 'CmRWAAAAqGYRANjgide_-pBFmUnaOY-m5Cy0RV8by6-pDkB_FsqouiehU-j-dV6oAdZuoMueEvKAqE1FAXcNivsB0mx9a40EEpPOXKKSiag_8wuFAlwGpeQUoXwn_ccF5zs6vldhEhAm161WaDqwSfBFKqjRE04vGhS3BcwJ2MeUbpuPbtVTUx3w3OEpLQ',
+            'terms': [
+                {'offset': 0, 'value': u"Hattie B's Hot Chicken"},
+                {'offset': 24, 'value': '19th Avenue South'},
+                {'offset': 43, 'value': 'Nashville'},
+                {'offset': 54, 'value': 'TN'},
+                {'offset': 58, 'value': 'United States'}
+            ],
+            'types': ['establishment']
+        },
+        {
+            'description': 'Hattiesburg, MS, United States',
+            'id': '25f9c17302a8a1a8e432c53d6d4c712063e93188',
+            'matched_substrings': [{'length': 6, 'offset': 0}],
+            'place_id': 'ChIJ3yio1UncnIgRyrUcLZK_sXQ',
+            'reference': 'CkQ2AAAAwRcCnvJl5ZvhsZ6TxUrkpDqPIW7mVIANGti65-SK7MlCNEPj7vGkN2Dh_KnxI7XI6pyDcTsXCoi7wLnQrr4H7xIQ_D35yzn61ZNmQelYcjk9xBoUsgP8yimN1xd9J4L6k4b6ZpK_E94',
+            'terms': [
+                {'offset': 0, 'value': 'Hattiesburg'},
+                {'offset': 13, 'value': 'MS'},
+                {'offset': 17, 'value': 'United States'}
+            ],
+            'types': ['locality', 'political', 'geocode']\
+        },
+        {
+            'description': 'Hattie Cotton Elementary School, Nashville, TN, United States',
+            'id': 'f8998e62bf80300a07a8d007b890bb17368b3fd4',
+            'matched_substrings': [{'length': 6, 'offset': 0}],
+            'place_id': 'ChIJXzft89tnZIgRm0ovqWZebMs',
+            'reference': 'ClRMAAAAVe4DIy63p4YGFHVQpmlrgBXkA1K0T6xZbWm2SHitS28bZcPl2ctmi7QNKR2EX_2RNY5ckfPVIBL3iDOmhzjeuCrn48qNnoE0z9QJzskfdnASEKo5EvKlKYNuqep4dyThEDcaFFYegROsLxF0tssPzZAYyL9ra70z',
+            'terms': [
+                {'offset': 0, 'value': 'Hattie Cotton Elementary School'},
+                {'offset': 33, 'value': 'Nashville'},
+                {'offset': 44, 'value': 'TN'},
+                {'offset': 48, 'value': 'United States'}
+            ],
+            'types': ['establishment']
+        },
+        {
+            'description': 'Hattie Ct, Hendersonville, TN, United States',
+            'id': 'eaeb7403d82be002de3ae52ab811d4014d4dff5b',
+            'matched_substrings': [{'length': 6, 'offset': 0}],
+            'place_id': 'EixIYXR0aWUgQ3QsIEhlbmRlcnNvbnZpbGxlLCBUTiwgVW5pdGVkIFN0YXRlcw',
+            'reference': 'CjQwAAAA16vktOVr7wLMig9H8Eb0CQFaDuIhqsG-3G7YCH7NE9qKxImG9p8W_mXbhjnkg9f4EhA6hP-p7r4I-iBMu6vcpb2VGhRFB4IPb0QupUlhD_B-Q8T6UJ8NQQ',
+            'terms': [
+                {'offset': 0, 'value': 'Hattie Ct'},
+                {'offset': 11, 'value': 'Hendersonville'},
+                {'offset': 27, 'value': 'TN'},
+                {'offset': 31, 'value': 'United States'}
+            ],
+            'types': ['route', 'geocode']
+        },
+        {
+            'description': 'Hattieville, AR, United States',
+            'id': '4a144096d3107fd6f3ef0254c5ca4dd106abebcd',
+            'matched_substrings': [{'length': 6, 'offset': 0}],
+            'place_id': 'ChIJjTUp5w2izYcRwRTy8ZpwjkI',
+            'reference': 'CkQ2AAAA-9G9z7Y3SSTPJOxNcCSVhUxeaC7OTL_ADLq00_WXSHBhXi1PTsm08gX2Zz_uLnLTBFJhqxm4g9HrbTO8Rm25lBIQepnjuQ02A6BqH2lNVjsIzRoUM_ndW4AhrGZFxnKOWSAPWfAm7hY',
+            'terms': [
+                {'offset': 0, 'value': 'Hattieville'},
+                {'offset': 13, 'value': 'AR'},
+                {'offset': 17, 'value': 'United States'}
+            ],
+            'types': ['locality', 'political', 'geocode']
+        }
+    ],
+    'status': 'OK'
 }
