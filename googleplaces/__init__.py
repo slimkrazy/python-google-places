@@ -34,7 +34,7 @@ from . import ranking
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
            'geocode_location']
-__version__ = '0.11.1'
+__version__ = '0.12.0'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
@@ -314,7 +314,7 @@ class GooglePlaces(object):
         _validate_response(url, places_response)
         return GooglePlacesSearchResult(self, places_response)
 
-    def autocomplete(self, input, location=None, radius=3200,
+    def autocomplete(self, input, lat_lng=None, radius=3200,
                      language=lang.ENGLISH, types=None, components=[]):
         """
         Perform an autocomplete search using the Google Places API.
@@ -325,7 +325,7 @@ class GooglePlaces(object):
         keyword arguments:
         input    -- The text string on which to search, for example:
                     "Hattie B's".
-        location -- Must be specified as latitude,longitude
+        lat_lng  -- A dict containing the following keys: lat, lng
                     (default None)
         radius   -- The radius (in meters) around the location to which the
                     search is to be restricted. The maximum is 50000 meters.
@@ -342,14 +342,15 @@ class GooglePlaces(object):
                     eg: [('country','US')]
         """
         self._request_params = {'input': input}
-        if location is not None:
-            location_str = '%(lat)s,%(lng)s' % location
-            self._request_params['location'] = location_str
+        if lat_lng is not None:
+            lat_lng_str = '%(lat)s,%(lng)s' % lat_lng
+            self._request_params['location'] = lat_lng_str
         self._request_params['radius'] = radius
         if types:
             self._request_params['types'] = types
         if len(components) > 0:
-            self._request_params['components'] = '|'.join(['{}:{}'.format(c[0],c[1]) for c in components])
+            self._request_params['components'] = '|'.join(['{}:{}'.format(
+                                                     c[0],c[1]) for c in components])
         if language is not None:
             self._request_params['language'] = language
         self._add_required_param_keys()
@@ -569,7 +570,7 @@ class GoogleAutocompleteSearchResult(object):
 
 class Prediction(object):
     """
-    Represents a prediction from the results of a Google Places Autocomplet API query.
+    Represents a prediction from the results of a Google Places Autocomplete API query.
     """
     def __init__(self, query_instance, prediction):
         self._query_instance = query_instance
@@ -819,7 +820,7 @@ class Place(object):
         results.
         """
         if self._vicinity == '' and self.details != None and 'vicinity' in self.details:
-        	self._vicinity = self.details['vicinity']
+            self._vicinity = self.details['vicinity']
         return self._vicinity
 
     @property
@@ -829,7 +830,7 @@ class Place(object):
         This method will return None for places that have no rating.
         """
         if self._rating == '' and self.details != None and 'rating' in self.details:
-        	self._rating = self.details['rating']
+            self._rating = self.details['rating']
         return self._rating
 
     # The following properties require a further API call in order to be
@@ -865,7 +866,7 @@ class Place(object):
 
     @property
     def website(self):
-        """Retuns the authoritative website for this Place."""
+        """Returns the authoritative website for this Place."""
         self._validate_status()
         return self.details.get('website')
 
