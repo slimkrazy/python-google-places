@@ -123,12 +123,12 @@ Reference
             keyword  -- A term to be matched against all available fields, including but
                         not limited to name, type, and address (default None)
 
-            location -- A human readable location, e.g 'London, England' (default None)
-
             language -- The language code, indicating in which language the results
                         should be returned, if possble. (default en)
 
             lat_lng  -- A dict containing the following keys: lat, lng (default None)
+
+            location -- A human readable location, e.g 'London, England' (default None)
 
             name     -- A term to be matched against the names of the Places.
                         Results will be restricted to those containing the passed name value. (default None)
@@ -153,6 +153,8 @@ Reference
 
             lat_lng  -- A dict containing the following keys: lat, lng (default None)
 
+            location -- A human readable location, e.g 'London, England' (default None)
+
             language -- The language code, indicating in which language the results
                         should be returned, if possble. (default en)
 
@@ -160,6 +162,33 @@ Reference
                         the search to. The maximum is 50000 meters (default 3200)
 
             types    -- An optional list of types, restricting the results to Places (default [])
+
+      autocomplete(**kwargs):
+        Returns googleplaces.GoogleAutocompleteSearchResult
+          kwargs:
+            input  --   The text string on which to search, for example:
+                        "Hattie B's".
+
+            lat_lng -- A dict containing the following keys: lat, lng (default None)
+
+            location -- A human readable location, e.g 'London, England' (default None)
+
+            radius   -- The radius (in meters) around the location to which the
+                        search is to be restricted. The maximum is 50000 meters.
+                        (default 3200)
+
+            language -- The language code, indicating in which language the
+                        results should be returned, if possible. (default lang.ENGLISH)
+
+            types    -- A type to search against. See `types.py` "autocomplete types"
+                        for complete list
+                        https://developers.google.com/places/documentation/autocomplete#place_types.
+
+            components -- An optional grouping of places to which you would
+                        like to restrict your results. An array containing one or
+                        more tuples of:
+                        * country: matches a country name or a two letter ISO 3166-1 country code.
+                        eg: [('country','US')]
 
       radar_search(**kwargs)
         Returns googleplaces.GooglePlacesSearchResult
@@ -170,10 +199,12 @@ Reference
             name     -- A term to be matched against the names of Places. Results will
                         be restricted to those containing the passed name value.
 
-	    opennow --  Returns only those Places that are open for business at the time
+            opennow  -- Returns only those Places that are open for business at the time
                         the query is sent
 
             lat_lng  -- A dict containing the following keys: lat, lng (default None)
+
+            location -- A human readable location, e.g 'London, England' (default None)
 
             language -- The language code, indicating in which language the results
                         should be returned, if possble. (default en)
@@ -238,10 +269,18 @@ Reference
                            device using its location sensor (default False).
 
 
+    googleplaces.GoogleAutocompleteSearchResult
+      raw_response
+        Returns the raw JSON response from the Autocomplete API.
+
+      predictions
+        Returns an array of prediction objects.
+
+
     googleplaces.GooglePlacesSearchResult
       raw_response
         The raw JSON response returned by the Google Places API.
- 
+
       places
         A list of summary googleplaces.Place instances.
 
@@ -252,6 +291,56 @@ Reference
       html_attributions()
         Returns a List of String html attributions that must be displayed along with
         the search results.
+
+
+    googleplaces.Prediction
+      description
+        String representation of a Prediction location. Generally contains
+        name, country, and elements contained in the terms property.
+
+      id
+        Returns a unique stable identifier denoting this Place. This identifier
+        may not be used to retrieve information about this Place, but can be used
+        to consolidate data about this Place, and to verify the identity of a
+        Place across separate searches
+
+      matched_substrings
+        Returns the placement and offset of the matched strings for this search.
+        A an array of dicts, each with the keys 'length' and 'offset', will be returned.
+
+      place_id
+        Returns the unique stable identifier denoting this place.
+        This identifier may be used to retrieve information about this
+        place.
+        This should be considered the primary identifier of a place.
+
+      reference
+        Returns a unique identifier for the Place that can be used to fetch full
+        details about it. It is recommended that stored references for Places be
+        regularly updated. A Place may have many valid reference tokens.
+        Returns a unique identifier for the Place that can be used to fetch full
+        details about it. It is recommended that stored references for Places be
+        regularly updated. A Place may have many valid reference tokens.
+
+      terms
+        A list of terms which build up the description string
+        A an array of dicts, each with the keys `offset` and `value`, will be returned.
+
+      types
+        Returns a List of feature types describing the given result.
+
+      place
+        Returns a Dict representing the full response from the details API request.
+        This property will raise a googleplaces.GooglePlacesAttributeError if it is
+        referenced prior to get_details()
+
+      get_details(**kwargs)
+        Retrieves full information on the place matching the reference.
+          kwargs:
+            language   -- The language code, indicating in which language the
+                          results should be returned, if possible. This value defaults
+                          to the language that was used to generate the
+                          GooglePlacesSearchResult instance.
 
 
     googleplaces.Place
