@@ -123,12 +123,12 @@ Reference
             keyword  -- A term to be matched against all available fields, including but
                         not limited to name, type, and address (default None)
 
-            location -- A human readable location, e.g 'London, England' (default None)
-
             language -- The language code, indicating in which language the results
                         should be returned, if possble. (default en)
 
             lat_lng  -- A dict containing the following keys: lat, lng (default None)
+
+            location -- A human readable location, e.g 'London, England' (default None)
 
             name     -- A term to be matched against the names of the Places.
                         Results will be restricted to those containing the passed name value. (default None)
@@ -153,6 +153,8 @@ Reference
 
             lat_lng  -- A dict containing the following keys: lat, lng (default None)
 
+            location -- A human readable location, e.g 'London, England' (default None)
+
             language -- The language code, indicating in which language the results
                         should be returned, if possble. (default en)
 
@@ -168,6 +170,8 @@ Reference
                         "Hattie B's".
 
             lat_lng -- A dict containing the following keys: lat, lng (default None)
+
+            location -- A human readable location, e.g 'London, England' (default None)
 
             radius   -- The radius (in meters) around the location to which the
                         search is to be restricted. The maximum is 50000 meters.
@@ -199,6 +203,8 @@ Reference
                         the query is sent
 
             lat_lng  -- A dict containing the following keys: lat, lng (default None)
+
+            location -- A human readable location, e.g 'London, England' (default None)
 
             language -- The language code, indicating in which language the results
                         should be returned, if possble. (default en)

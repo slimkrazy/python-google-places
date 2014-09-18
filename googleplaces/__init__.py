@@ -34,7 +34,7 @@ from . import ranking
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
            'geocode_location']
-__version__ = '0.12.0'
+__version__ = '0.12.1'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
@@ -255,11 +255,9 @@ class GooglePlaces(object):
                                  'name, keyword or types kwargs ' +
                                  'must be specified.')
         self._sensor = sensor
-        self._lat_lng = (lat_lng if lat_lng is not None
-                         else geocode_location(location))
         radius = (radius if radius <= GooglePlaces.MAXIMUM_SEARCH_RADIUS
                   else GooglePlaces.MAXIMUM_SEARCH_RADIUS)
-        lat_lng_str = '%(lat)s,%(lng)s' % self._lat_lng
+        lat_lng_str = self._generate_lat_lng_string(lat_lng, location)
         self._request_params = {'location': lat_lng_str}
         if rankby == 'prominence':
             self._request_params['radius'] = radius
@@ -280,7 +278,7 @@ class GooglePlaces(object):
         return GooglePlacesSearchResult(self, places_response)
 
     def text_search(self, query, language=lang.ENGLISH, lat_lng=None,
-                    radius=3200, types=[]):
+                    radius=3200, types=[], location=None):
         """Perform a text search using the Google Places API.
 
         Only the query kwarg is required, the rest of the keyword arguments
@@ -289,19 +287,19 @@ class GooglePlaces(object):
         keyword arguments:
         lat_lng  -- A dict containing the following keys: lat, lng
                     (default None)
+        location -- A human readable location, e.g 'London, England'
+                    (default None)
         radius   -- The radius (in meters) around the location/lat_lng to
                     restrict the search to. The maximum is 50000 meters.
                     (default 3200)
         query    -- The text string on which to search, for example:
                     "Restaurant in New York".
-        location -- A human readable location, e.g 'London, England'
-                    (default None)
         types    -- An optional list of types, restricting the results to
                     Places (default []).
         """
         self._request_params = {'query': query}
-        if lat_lng is not None:
-            lat_lng_str = '%(lat)s,%(lng)s' % lat_lng
+        if lat_lng is not None or location is not None:
+            lat_lng_str = self._generate_lat_lng_string(lat_lng, location)
             self._request_params['location'] = lat_lng_str
         self._request_params['radius'] = radius
         if len(types) > 0:
@@ -314,7 +312,7 @@ class GooglePlaces(object):
         _validate_response(url, places_response)
         return GooglePlacesSearchResult(self, places_response)
 
-    def autocomplete(self, input, lat_lng=None, radius=3200,
+    def autocomplete(self, input, lat_lng=None, location=None, radius=3200,
                      language=lang.ENGLISH, types=None, components=[]):
         """
         Perform an autocomplete search using the Google Places API.
@@ -326,6 +324,8 @@ class GooglePlaces(object):
         input    -- The text string on which to search, for example:
                     "Hattie B's".
         lat_lng  -- A dict containing the following keys: lat, lng
+                    (default None)
+        location -- A human readable location, e.g 'London, England'
                     (default None)
         radius   -- The radius (in meters) around the location to which the
                     search is to be restricted. The maximum is 50000 meters.
@@ -342,8 +342,8 @@ class GooglePlaces(object):
                     eg: [('country','US')]
         """
         self._request_params = {'input': input}
-        if lat_lng is not None:
-            lat_lng_str = '%(lat)s,%(lng)s' % lat_lng
+        if lat_lng is not None or location is not None:
+            lat_lng_str = self._generate_lat_lng_string(lat_lng, location)
             self._request_params['location'] = lat_lng_str
         self._request_params['radius'] = radius
         if types:
@@ -361,10 +361,11 @@ class GooglePlaces(object):
 
     def radar_search(self, sensor=False, keyword=None, name=None,
                      language=lang.ENGLISH, lat_lng=None, opennow=False,
-                     radius=3200, types=[]):
+                     radius=3200, types=[], location=None):
         """Perform a radar search using the Google Places API.
 
-        lat_lng are required, the rest of the keyword arguments are optional.
+        One of lat_lng or location are required, the rest of the keyword
+        arguments are optional.
 
         keyword arguments:
         keyword  -- A term to be matched against all available fields, including
@@ -374,6 +375,8 @@ class GooglePlaces(object):
         language -- The language code, indicating in which language the
                     results should be returned, if possible. (default lang.ENGLISH)
         lat_lng  -- A dict containing the following keys: lat, lng
+                    (default None)
+        location -- A human readable location, e.g 'London, England'
                     (default None)
         radius   -- The radius (in meters) around the location/lat_lng to
                     restrict the search to. The maximum is 50000 meters.
@@ -387,8 +390,8 @@ class GooglePlaces(object):
         """
         if keyword is None and name is None and len(types) is 0:
             raise ValueError('One of keyword, name or types must be supplied.')
-        if lat_lng is None:
-            raise ValueError('lat_lng must be passed in.')
+        if location is None and lat_lng is None:
+            raise ValueError('One of location or lat_lng must be passed in.')
         try:
             radius = int(radius)
         except:
@@ -398,11 +401,8 @@ class GooglePlaces(object):
 
         self._request_params = {'radius': radius}
         self._sensor = sensor
-        try:
-            lat_lng_str = '%(lat)s,%(lng)s' % lat_lng
-            self._request_params['location'] = lat_lng_str
-        except:
-            raise ValueError('lat_lng must be a dict with the keys, \'lat\' and \'lng\'')
+        self._request_params['location'] = self._generate_lat_lng_string(
+                lat_lng, location)
         if keyword is not None:
             self._request_params['keyword'] = keyword
         if name is not None:
@@ -535,6 +535,14 @@ class GooglePlaces(object):
     def _add_required_param_keys(self):
         self._request_params['key'] = self.api_key
         self._request_params['sensor'] = str(self.sensor).lower()
+
+    def _generate_lat_lng_string(self, lat_lng, location):
+        try:
+            return '%(lat)s,%(lng)s' % (lat_lng if lat_lng is not None
+                    else geocode_location(location))
+        except:
+            raise ValueError(
+                'lat_lng must be a dict with the keys, \'lat\' and \'lng\'')
 
     @property
     def request_params(self):
