@@ -15,13 +15,17 @@ production environment.
 from __future__ import absolute_import
 
 import cgi
-import six
 try:
     import json
 except ImportError:
     import simplejson as json
 
-from six.moves import urllib
+try:
+    import six
+    from six.moves import urllib
+except ImportError:
+    pass
+
 import warnings
 
 from . import lang
