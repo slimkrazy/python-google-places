@@ -755,8 +755,9 @@ class Place(object):
     """
     def __init__(self, query_instance, place_data):
         self._query_instance = query_instance
-        self._id = place_data['id']
-        self._reference = place_data['reference']
+        self._place_id = place_data['place_id']
+        self._id = place_data.get('id', '')
+        self._reference = place_data.get('reference', '')
         self._name = place_data.get('name','')
         self._vicinity = place_data.get('vicinity', '')
         self._geo_location = place_data['geometry']['location']
@@ -770,7 +771,10 @@ class Place(object):
 
     @property
     def reference(self):
-        """Returns contains a unique token for the place.
+        """DEPRECATED AS OF JUNE 24, 2014. May stop being returned on June 24,
+        2015. Reference: https://developers.google.com/places/documentation/search
+
+        Returns contains a unique token for the place.
 
         The token can be used to retrieve additional information about this
         place when invoking the getPlace method on an GooglePlaces instance.
@@ -778,18 +782,38 @@ class Place(object):
         You can store this token and use it at any time in future to refresh
         cached data about this Place, but the same token is not guaranteed to
         be returned for any given Place across different searches."""
+        warnings.warn('The "reference" feature is deprecated and may'
+                      'stop working any time after June 24, 2015.',
+                      FutureWarning)
         return self._reference
 
     @property
     def id(self):
-        """Returns the unique stable identifier denoting this place.
+        """DEPRECATED AS OF JUNE 24, 2014. May stop being returned on June 24,
+        2015. Reference: https://developers.google.com/places/documentation/search
+
+        Returns the unique stable identifier denoting this place.
 
         This identifier may not be used to retrieve information about this
         place, but is guaranteed to be valid across sessions. It can be used
         to consolidate data about this Place, and to verify the identity of a
         Place across separate searches.
         """
+        warnings.warn('The "id" feature is deprecated and may'
+                      'stop working any time after June 24, 2015.',
+                      FutureWarning)
         return self._id
+
+    @property
+    def place_id(self):
+        """Returns the unique stable identifier denoting this place.
+
+        This identifier may be used to retrieve information about this
+        place.
+
+        This should be considered the primary identifier of a place.
+        """
+        return self._place_id
 
     @property
     def icon(self):
@@ -907,7 +931,7 @@ class Place(object):
 
     def checkin(self):
         """Checks in an anonymous user in."""
-        self._query_instance.checkin(self.reference,
+        self._query_instance.checkin(self.place_id,
                                      self._query_instance.sensor)
 
     def get_details(self, language=None):
@@ -929,7 +953,7 @@ class Place(object):
                 except KeyError:
                     language = lang.ENGLISH
             self._details = _get_place_details(
-                    self.reference, self._query_instance.api_key,
+                    self.place_id, self._query_instance.api_key,
                     self._query_instance.sensor, language=language)
 
     @cached_property
