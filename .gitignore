@@ -2,3 +2,5 @@
 .project
 .pydevproject
 .DS_Store
+MANIFEST
+dist/
