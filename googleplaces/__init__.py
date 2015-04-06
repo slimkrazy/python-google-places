@@ -34,7 +34,7 @@ from . import ranking
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
            'geocode_location']
-__version__ = '0.13.0'
+__version__ = '1.0.0'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
@@ -108,15 +108,15 @@ def geocode_location(location, sensor=False):
         raise GooglePlacesError(error_detail)
     return geo_response['results'][0]['geometry']['location']
 
-def _get_place_details(reference, api_key, sensor=False,
+def _get_place_details(place_id, api_key, sensor=False,
                        language=lang.ENGLISH):
     """Gets a detailed place response.
 
     keyword arguments:
-    reference -- The unique Google reference for the required place.
+    place_id -- The unique identifier for the required place.
     """
     url, detail_response = _fetch_remote_json(GooglePlaces.DETAIL_API_URL,
-                                              {'reference': reference,
+                                              {'placeid': place_id,
                                                'sensor': str(sensor).lower(),
                                                'key': api_key,
                                                'language': language})
@@ -169,7 +169,7 @@ class GooglePlacesAttributeError(AttributeError):
 
     A search query from the places API returns only a summary of the Place.
     in order to get full details, a further API call must be made using
-    the place reference. This exception will be thrown when a property made
+    the place_id. This exception will be thrown when a property made
     available by only the detailed API call is looked up against the summary
     object.
 
@@ -419,31 +419,31 @@ class GooglePlaces(object):
         _validate_response(url, places_response)
         return GooglePlacesSearchResult(self, places_response)
 
-    def checkin(self, reference, sensor=False):
+    def checkin(self, place_id, sensor=False):
         """Checks in a user to a place.
 
         keyword arguments:
-        reference -- The unique Google reference for the relevant place.
+        place_id  -- The unique Google identifier for the relevant place.
         sensor    -- Boolean flag denoting if the location came from a
                      device using its location sensor (default False).
         """
-        data = {'reference': reference}
+        data = {'placeid': place_id}
         url, checkin_response = _fetch_remote_json(
                 GooglePlaces.CHECKIN_API_URL % (str(sensor).lower(),
                         self.api_key), json.dumps(data), use_http_post=True)
         _validate_response(url, checkin_response)
 
-    def get_place(self, reference, sensor=False, language=lang.ENGLISH):
+    def get_place(self, place_id, sensor=False, language=lang.ENGLISH):
         """Gets a detailed place object.
 
         keyword arguments:
-        reference -- The unique Google reference for the required place.
+        place_id -- The unique Google identifier for the required place.
         sensor    -- Boolean flag denoting if the location came from a
                      device using its' location sensor (default False).
         language -- The language code, indicating in which language the
                     results should be returned, if possible. (default lang.ENGLISH)
         """
-        place_details = _get_place_details(reference,
+        place_details = _get_place_details(place_id,
                 self.api_key, sensor, language=language)
         return Place(self, place_details)
 
@@ -451,7 +451,7 @@ class GooglePlaces(object):
         """Adds a place to the Google Places database.
 
         On a successful request, this method will return a dict containing
-        the the new Place's reference and id in keys 'reference' and 'id'
+        the the new Place's place_id and id in keys 'place_id' and 'id'
         respectively.
 
         keyword arguments:
@@ -513,20 +513,20 @@ class GooglePlaces(object):
                 GooglePlaces.ADD_API_URL % (str(sensor).lower(),
                 self.api_key), json.dumps(request_params), use_http_post=True)
         _validate_response(url, add_response)
-        return {'reference': add_response['reference'],
+        return {'place_id': add_response['place_id'],
                 'id': add_response['id']}
 
-    def delete_place(self, reference, sensor=False):
+    def delete_place(self, place_id, sensor=False):
         """Deletes a place from the Google Places database.
 
         keyword arguments:
-        reference  -- The textual identifier that uniquely identifies this
+        place_id   -- The textual identifier that uniquely identifies this
                       Place, returned from a Place Search request.
         sensor     -- Boolean flag denoting if the location came from a device
                       using its location sensor (default False).
         """
 
-        request_params = {'reference': reference}
+        request_params = {'place_id': place_id}
         url, delete_response = _fetch_remote_json(
                 GooglePlaces.DELETE_API_URL % (str(sensor).lower(),
                 self.api_key), json.dumps(request_params), use_http_post=True)
@@ -685,7 +685,7 @@ class Prediction(object):
 
     def get_details(self, language=None):
         """
-        Retrieves full information on the place matching the reference.
+        Retrieves full information on the place matching the place_id.
 
         Stores the response in the `place` property.
         """
@@ -696,7 +696,7 @@ class Prediction(object):
                 except KeyError:
                     language = lang.ENGLISH
             place = _get_place_details(
-                    self.reference, self._query_instance.api_key,
+                    self.place_id, self._query_instance.api_key,
                     self._query_instance.sensor, language=language)
             self._place = Place(self._query_instance, place)
 
@@ -935,7 +935,7 @@ class Place(object):
                                      self._query_instance.sensor)
 
     def get_details(self, language=None):
-        """Retrieves full information on the place matching the reference.
+        """Retrieves full information on the place matching the place_id.
 
         Further attributes will be made available on the instance once this
         method has been invoked.
