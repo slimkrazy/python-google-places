@@ -34,7 +34,7 @@ from . import ranking
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
            'geocode_location']
-__version__ = '0.12.1'
+__version__ = '0.13.0'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
