@@ -6,6 +6,7 @@ Unit tests for google places.
 
 from random import randint
 import unittest
+import warnings
 
 from googleplaces import (
     GooglePlaces,
@@ -34,9 +35,17 @@ class Test(unittest.TestCase):
         place_index = randint(0, len(query_result.places)-1)
         place = query_result.places[place_index]
         response_place_entity = PLACES_QUERY_RESPONSE['results'][place_index]
-        self.assertEqual(place.id, response_place_entity.get('id'), 'ID value is incorrect.')
-        self.assertEqual(
-                         place.reference,
+
+        # make sure Place.id and Place.reference raise appropriate warnings
+        with warnings.catch_warnings(record=True) as w:
+            place_id = place.id
+            place_reference = place.reference
+            self.assertEqual(len(w), 2)
+            self.assertEqual(w[0].category, FutureWarning)
+            self.assertEqual(w[1].category, FutureWarning)
+
+        self.assertEqual(place_id, response_place_entity.get('id'), 'ID value is incorrect.')
+        self.assertEqual(place_reference,
                          response_place_entity.get('reference'),
                          'Reference value is incorrect.')
         self.assertEqual(place.name, response_place_entity.get('name'),

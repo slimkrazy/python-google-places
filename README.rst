@@ -345,15 +345,20 @@ Reference
 
     googleplaces.Place
       reference
-        Returns a unique identifier for the Place that can be used to fetch full
-        details about it. It is recommended that stored references for Places be
-        regularly updated. A Place may have many valid reference tokens.
+        (DEPRECATED) Returns a unique identifier for the Place that can be used to 
+        fetch full details about it. It is recommended that stored references for
+        Places be regularly updated. A Place may have many valid reference tokens.
 
       id
-        Returns a unique stable identifier denoting this Place. This identifier
-        may not be used to retrieve information about this Place, but can be used
-        to consolidate data about this Place, and to verify the identity of a
-        Place across separate searches
+        (DEPECATED) Returns a unique stable identifier denoting this Place. This
+        identifier may not be used to retrieve information about this Place, but
+        can be used to consolidate data about this Place, and to verify the identity
+        of a Place across separate searches.
+
+      place_id
+        A textual identifier that uniquely identifies a place. To retrieve information
+        about the place, pass this identifier in the placeId field of a Places API
+        request.
 
       icon
         contains the URL of a suggested icon which may be displayed to the user when
