@@ -57,7 +57,7 @@ Code is easier to understand than words, so let us dive right in ::
         # Returned places from a query are place summaries.
         print place.name
         print place.geo_location
-        print place.reference
+        print place.place_id
 
         # The following method has to make a further API call.
         place.get_details()
@@ -91,11 +91,11 @@ Code is easier to understand than words, so let us dive right in ::
                 accuracy=100,
                 types=types.TYPE_HOME_GOODS_STORE,
                 language=lang.ENGLISH_GREAT_BRITAIN)
-        print added_place.reference # The Google Places reference - Important!
+        print added_place.place_id # The Google Places identifier - Important!
         print added_place.id
 
         # Delete the place that you've just added.
-        google_places.delete_place(added_place.reference)
+        google_places.delete_place(added_place.place_id)
     except GooglePlacesError as error_detail:
         # You've passed in parameter values that the Places API doesn't like..
         print error_detail
@@ -220,7 +220,7 @@ Reference
 
       get_place(**kwargs)
         Returns a detailed instance of googleplaces.Place
-          reference  -- The unique Google reference for the required place.
+          place_id  -- The unique Google identifier for the required place.
 
           language   -- The language code, indicating in which language the results
                         should be returned, if possble. (default en)
@@ -229,17 +229,17 @@ Reference
                         device using a location sensor (default False).
 
 
-      checkin(reference, sensor=False)
-        Checks in an anonymous user in to the Place that matches the reference.
+      checkin(place_id, sensor=False)
+        Checks in an anonymous user in to the Place that matches the place_id.
           kwargs:
-            reference   -- The unique Google reference for the required place.
+            place_id   -- The unique Google identifier for the required place.
 
             sensor      -- Boolean flag denoting if the location came from a device
                            using its location sensor (default False).
 
 
       add_place(**kwargs)
-        Returns a dict containing the following keys: reference, id.
+        Returns a dict containing the following keys: place_id, id.
           kwargs:
             name        -- The full text name of the Place. Limited to 255
                            characters.
@@ -260,10 +260,10 @@ Reference
                            using its location sensor (default False).
 
 
-      delete_place(reference, sensor=False)
+      delete_place(place_id, sensor=False)
         Deletes a place from the Google Places database.
           kwargs:
-            reference   -- The unique Google reference for the required place.
+            place_id   -- The unique Google identifier for the required place.
 
             sensor      -- Boolean flag denoting if the location came from a
                            device using its location sensor (default False).
@@ -315,9 +315,6 @@ Reference
         This should be considered the primary identifier of a place.
 
       reference
-        Returns a unique identifier for the Place that can be used to fetch full
-        details about it. It is recommended that stored references for Places be
-        regularly updated. A Place may have many valid reference tokens.
         Returns a unique identifier for the Place that can be used to fetch full
         details about it. It is recommended that stored references for Places be
         regularly updated. A Place may have many valid reference tokens.
@@ -424,7 +421,7 @@ Reference
         Checks in an anonynomous user in.
 
       get_details(**kwargs)
-        Retrieves full information on the place matching the reference.
+        Retrieves full information on the place matching the place_id.
           kwargs:
             language   -- The language code, indicating in which language the
                           results should be returned, if possible. This value defaults
