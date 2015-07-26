@@ -34,7 +34,7 @@ from . import ranking
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
            'geocode_location']
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
@@ -575,6 +575,13 @@ class GoogleAutocompleteSearchResult(object):
     def predictions(self):
         return self._predictions
 
+    def __repr__(self):
+        """Return a string representation stating number of predictions."""
+        return '<{} with {} prediction(s)>'.format(
+            self.__class__.__name__,
+            len(self.predictions)
+        )
+
 
 class Prediction(object):
     """
@@ -709,6 +716,10 @@ class Prediction(object):
                     'an explicit call to get_details() is made.')
             raise GooglePlacesAttributeError(error_detail)
 
+    def __repr__(self):
+        """ Return a string representation with description. """
+        return '<{} description="{}">'.format(self.__class__.__name__, self.description)
+
 
 class GooglePlacesSearchResult(object):
     """
@@ -747,6 +758,10 @@ class GooglePlacesSearchResult(object):
     def has_attributions(self):
         """Returns a flag denoting if the response had any html attributions."""
         return len(self.html_attributions) > 0
+
+    def __repr__(self):
+        """ Return a string representation stating the number of results."""
+        return '<{} with {} result(s)>'.format(self.__class__.__name__, len(self.places))
 
 
 class Place(object):
@@ -967,6 +982,15 @@ class Place(object):
             error_detail = ('The attribute requested is only available after ' +
                     'an explicit call to get_details() is made.')
             raise GooglePlacesAttributeError(error_detail)
+
+    def __repr__(self):
+        """ Return a string representation including the name, lat, and lng. """
+        return '<{} name="{}", lat={}, lng={}>'.format(
+            self.__class__.__name__,
+            self.name,
+            self.geo_location['lat'],
+            self.geo_location['lng']
+        )
 
 
 class Photo(object):
