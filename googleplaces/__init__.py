@@ -775,6 +775,7 @@ class Place(object):
         self._reference = place_data.get('reference', '')
         self._name = place_data.get('name','')
         self._vicinity = place_data.get('vicinity', '')
+        self._formatted_address = place_data.get('formatted_address', '')
         self._geo_location = place_data['geometry']['location']
         self._rating = place_data.get('rating','')
         self._types = place_data.get('types','')
@@ -897,8 +898,9 @@ class Place(object):
         such as the United Kingdom, do not allow distribution of complete postal
         addresses due to licensing restrictions.)
         """
-        self._validate_status()
-        return self.details.get('formatted_address')
+        if self._formatted_address == '' and self.details != None and 'formatted_address' in self.details:
+            self._formatted_address = self.details['formatted_address']
+        return self._formatted_address
 
     @property
     def local_phone_number(self):
