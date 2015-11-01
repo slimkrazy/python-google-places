@@ -15,17 +15,18 @@ production environment.
 from __future__ import absolute_import
 
 import cgi
+from decimal import Decimal
 try:
     import json
 except ImportError:
     import simplejson as json
-import urllib
 
-# For compatibility with Python 3
 try:
-    from urllib import request as urllib2  # Python 3 import
+    import six
+    from six.moves import urllib
 except ImportError:
-    import urllib2
+    pass
+
 import warnings
 
 from . import lang
@@ -34,7 +35,7 @@ from . import ranking
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
            'geocode_location']
-__version__ = '1.0.1'
+__version__ = '1.1.0'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
@@ -51,25 +52,28 @@ class cached_property(object):
 def _fetch_remote(service_url, params={}, use_http_post=False):
     encoded_data = {}
     for k, v in params.items():
-        if type(v) in [str, unicode]:
+        if isinstance(v, six.string_types):
             v = v.encode('utf-8')
         encoded_data[k] = v
-    encoded_data = urllib.urlencode(encoded_data)
+    encoded_data = urllib.parse.urlencode(encoded_data)
 
     if not use_http_post:
         query_url = (service_url if service_url.endswith('?') else
                      '%s?' % service_url)
         request_url = query_url + encoded_data
-        request = urllib2.Request(request_url)
+        request = urllib.request.Request(request_url)
     else:
         request_url = service_url
-        request = urllib2.Request(service_url, data=encoded_data)
-    return (request_url, urllib2.urlopen(request))
+        request = urllib.request.Request(service_url, data=encoded_data)
+    return (request_url, urllib.request.urlopen(request))
 
 def _fetch_remote_json(service_url, params={}, use_http_post=False):
     """Retrieves a JSON object from a URL."""
     request_url, response = _fetch_remote(service_url, params, use_http_post)
-    return (request_url, json.load(response))
+    if six.PY3:
+        str_response = response.readall().decode('utf-8')
+        return (request_url, json.loads(str_response, parse_float=Decimal))
+    return (request_url, json.load(response, parse_float=Decimal))
 
 def _fetch_remote_file(service_url, params={}, use_http_post=False):
     """Retrieves a file from a URL.
