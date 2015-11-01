@@ -15,6 +15,7 @@ production environment.
 from __future__ import absolute_import
 
 import cgi
+from decimal import Decimal
 try:
     import json
 except ImportError:
@@ -69,7 +70,7 @@ def _fetch_remote(service_url, params={}, use_http_post=False):
 def _fetch_remote_json(service_url, params={}, use_http_post=False):
     """Retrieves a JSON object from a URL."""
     request_url, response = _fetch_remote(service_url, params, use_http_post)
-    return (request_url, json.load(response))
+    return (request_url, json.load(response, parse_float=Decimal))
 
 def _fetch_remote_file(service_url, params={}, use_http_post=False):
     """Retrieves a file from a URL.
