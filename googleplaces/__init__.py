@@ -247,7 +247,8 @@ class GooglePlaces(object):
         sensor   -- Indicates whether or not the Place request came from a
                     device using a location sensor (default False).
         types    -- An optional list of types, restricting the results to
-                    Places (default []).
+                    Places (default []). If there is only one item the request
+                    will be send as type param
         """
         if location is None and lat_lng is None:
             raise ValueError('One of location or lat_lng must be passed in.')
@@ -267,7 +268,9 @@ class GooglePlaces(object):
             self._request_params['radius'] = radius
         else:
             self._request_params['rankby'] = rankby
-        if len(types) > 0:
+        if len(types) == 1:
+            self._request_params['type'] = types[0]
+        elif len(types) > 1:
             self._request_params['types'] = '|'.join(types)
         if keyword is not None:
             self._request_params['keyword'] = keyword
@@ -299,14 +302,17 @@ class GooglePlaces(object):
         query    -- The text string on which to search, for example:
                     "Restaurant in New York".
         types    -- An optional list of types, restricting the results to
-                    Places (default []).
+                    Places (default []). If there is only one item the request
+                    will be send as type param
         """
         self._request_params = {'query': query}
         if lat_lng is not None or location is not None:
             lat_lng_str = self._generate_lat_lng_string(lat_lng, location)
             self._request_params['location'] = lat_lng_str
         self._request_params['radius'] = radius
-        if len(types) > 0:
+        if len(types) == 1:
+            self._request_params['type'] = types[0]
+        elif len(types) > 1:
             self._request_params['types'] = '|'.join(types)
         if language is not None:
             self._request_params['language'] = language
@@ -390,7 +396,8 @@ class GooglePlaces(object):
         sensor   -- Indicates whether or not the Place request came from a
                     device using a location sensor (default False).
         types    -- An optional list of types, restricting the results to
-                    Places (default []).
+                    Places (default []). If there is only one item the request
+                    will be send as type param
         """
         if keyword is None and name is None and len(types) is 0:
             raise ValueError('One of keyword, name or types must be supplied.')
@@ -411,7 +418,9 @@ class GooglePlaces(object):
             self._request_params['keyword'] = keyword
         if name is not None:
             self._request_params['name'] = name
-        if len(types) > 0:
+        if len(types) == 1:
+            self._request_params['type'] = types[0]
+        elif len(types) > 1:
             self._request_params['types'] = '|'.join(types)
         if language is not None:
             self._request_params['language'] = language
