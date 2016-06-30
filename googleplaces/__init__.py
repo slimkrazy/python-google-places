@@ -220,7 +220,7 @@ class GooglePlaces(object):
 
     def nearby_search(self, language=lang.ENGLISH, keyword=None, location=None,
                lat_lng=None, name=None, radius=3200, rankby=ranking.PROMINENCE,
-               sensor=False, types=[]):
+               sensor=False, type=None, types=[]):
         """Perform a nearby search using the Google Places API.
 
         One of either location or lat_lng are required, the rest of the keyword
@@ -246,6 +246,7 @@ class GooglePlaces(object):
                     (imply no radius argument).
         sensor   -- Indicates whether or not the Place request came from a
                     device using a location sensor (default False).
+        type     -- Optional type param used to indicate place category
         types    -- An optional list of types, restricting the results to
                     Places (default []). If there is only one item the request
                     will be send as type param
@@ -268,10 +269,13 @@ class GooglePlaces(object):
             self._request_params['radius'] = radius
         else:
             self._request_params['rankby'] = rankby
-        if len(types) == 1:
-            self._request_params['type'] = types[0]
-        elif len(types) > 1:
-            self._request_params['types'] = '|'.join(types)
+        if type:
+            self._request_params['type'] = type
+        elif types:
+            if len(types) == 1:
+                self._request_params['type'] = types[0]
+            elif len(types) > 1:
+                self._request_params['types'] = '|'.join(types)
         if keyword is not None:
             self._request_params['keyword'] = keyword
         if name is not None:
@@ -285,7 +289,7 @@ class GooglePlaces(object):
         return GooglePlacesSearchResult(self, places_response)
 
     def text_search(self, query, language=lang.ENGLISH, lat_lng=None,
-                    radius=3200, types=[], location=None):
+                    radius=3200, type=None, types=[], location=None):
         """Perform a text search using the Google Places API.
 
         Only the query kwarg is required, the rest of the keyword arguments
@@ -301,6 +305,7 @@ class GooglePlaces(object):
                     (default 3200)
         query    -- The text string on which to search, for example:
                     "Restaurant in New York".
+        type     -- Optional type param used to indicate place category
         types    -- An optional list of types, restricting the results to
                     Places (default []). If there is only one item the request
                     will be send as type param
@@ -310,10 +315,13 @@ class GooglePlaces(object):
             lat_lng_str = self._generate_lat_lng_string(lat_lng, location)
             self._request_params['location'] = lat_lng_str
         self._request_params['radius'] = radius
-        if len(types) == 1:
-            self._request_params['type'] = types[0]
-        elif len(types) > 1:
-            self._request_params['types'] = '|'.join(types)
+        if type:
+            self._request_params['type'] = type
+        elif types:
+            if len(types) == 1:
+                self._request_params['type'] = types[0]
+            elif len(types) > 1:
+                self._request_params['types'] = '|'.join(types)
         if language is not None:
             self._request_params['language'] = language
         self._add_required_param_keys()
@@ -371,7 +379,7 @@ class GooglePlaces(object):
 
     def radar_search(self, sensor=False, keyword=None, name=None,
                      language=lang.ENGLISH, lat_lng=None, opennow=False,
-                     radius=3200, types=[], location=None):
+                     radius=3200, type=None, types=[], location=None):
         """Perform a radar search using the Google Places API.
 
         One of lat_lng or location are required, the rest of the keyword
@@ -395,6 +403,7 @@ class GooglePlaces(object):
                     the query is sent. (default False)
         sensor   -- Indicates whether or not the Place request came from a
                     device using a location sensor (default False).
+        type     -- Optional type param used to indicate place category
         types    -- An optional list of types, restricting the results to
                     Places (default []). If there is only one item the request
                     will be send as type param
@@ -418,10 +427,13 @@ class GooglePlaces(object):
             self._request_params['keyword'] = keyword
         if name is not None:
             self._request_params['name'] = name
-        if len(types) == 1:
-            self._request_params['type'] = types[0]
-        elif len(types) > 1:
-            self._request_params['types'] = '|'.join(types)
+        if type:
+            self._request_params['type'] = type
+        elif types:
+            if len(types) == 1:
+                self._request_params['type'] = types[0]
+            elif len(types) > 1:
+                self._request_params['types'] = '|'.join(types)
         if language is not None:
             self._request_params['language'] = language
         if opennow is True:
