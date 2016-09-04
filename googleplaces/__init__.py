@@ -35,7 +35,7 @@ from . import ranking
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
            'geocode_location']
-__version__ = '1.2.0'
+__version__ = '1.3.0'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
@@ -246,10 +246,10 @@ class GooglePlaces(object):
                     (imply no radius argument).
         sensor   -- Indicates whether or not the Place request came from a
                     device using a location sensor (default False).
-        type     -- Optional type param used to indicate place category
+        type     -- Optional type param used to indicate place category.
         types    -- An optional list of types, restricting the results to
                     Places (default []). If there is only one item the request
-                    will be send as type param
+                    will be send as type param.
         """
         if location is None and lat_lng is None:
             raise ValueError('One of location or lat_lng must be passed in.')
@@ -305,10 +305,10 @@ class GooglePlaces(object):
                     (default 3200)
         query    -- The text string on which to search, for example:
                     "Restaurant in New York".
-        type     -- Optional type param used to indicate place category
+        type     -- Optional type param used to indicate place category.
         types    -- An optional list of types, restricting the results to
                     Places (default []). If there is only one item the request
-                    will be send as type param
+                    will be send as type param.
         """
         self._request_params = {'query': query}
         if lat_lng is not None or location is not None:

@@ -145,7 +145,11 @@ Reference
             sensor   -- Indicates whether or not the Place request came from a device
                         using a location sensor (default False)
 
-            types    -- An optional list of types, restricting the results to Places (default [])
+            type     -- An optional type used for restricting the results to Places (default None)
+
+            types    -- An optional list of types, restricting the results to Places (default []).
+                        This kwarg has been deprecated in favour of the 'type' kwarg.
+
 
 
       text_search(**kwargs)
@@ -164,7 +168,10 @@ Reference
             radius   -- The radius (in meters) around the location/lat_lng to restrict
                         the search to. The maximum is 50000 meters (default 3200)
 
+            type     -- An optional type used for restricting the results to Places (default None)
+
             types    -- An optional list of types, restricting the results to Places (default [])
+                        This kwarg has been deprecated in favour of the 'type' kwarg.
 
       autocomplete(**kwargs):
         Returns googleplaces.GoogleAutocompleteSearchResult
@@ -218,8 +225,10 @@ Reference
             sensor   -- Indicates whether or not the Place request came from a
                         device using a location sensor (default False).
 
-            types    -- An optional list of types, restricting the results to Places (default [])
+            type     -- An optional type used for restricting the results to Places (default None)
 
+            types    -- An optional list of types, restricting the results to Places (default [])
+                        This kwarg has been deprecated in favour of the 'type' kwarg.
 
       get_place(**kwargs)
         Returns a detailed instance of googleplaces.Place
