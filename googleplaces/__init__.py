@@ -49,7 +49,10 @@ class cached_property(object):
         return result
 
 
-def _fetch_remote(service_url, params={}, use_http_post=False):
+def _fetch_remote(service_url, params=None, use_http_post=False):
+    if not params:
+        params = {}
+
     encoded_data = {}
     for k, v in params.items():
         if isinstance(v, six.string_types):
@@ -67,19 +70,25 @@ def _fetch_remote(service_url, params={}, use_http_post=False):
         request = urllib.request.Request(service_url, data=encoded_data)
     return (request_url, urllib.request.urlopen(request))
 
-def _fetch_remote_json(service_url, params={}, use_http_post=False):
+def _fetch_remote_json(service_url, params=None, use_http_post=False):
     """Retrieves a JSON object from a URL."""
+    if not params:
+        params = {}
+
     request_url, response = _fetch_remote(service_url, params, use_http_post)
     if six.PY3:
         str_response = response.read().decode('utf-8')
         return (request_url, json.loads(str_response, parse_float=Decimal))
     return (request_url, json.load(response, parse_float=Decimal))
 
-def _fetch_remote_file(service_url, params={}, use_http_post=False):
+def _fetch_remote_file(service_url, params=None, use_http_post=False):
     """Retrieves a file from a URL.
 
     Returns a tuple (mimetype, filename, data)
     """
+    if not params:
+        params = {}
+
     request_url, response = _fetch_remote(service_url, params, use_http_post)
     dummy, params = cgi.parse_header(
             response.headers.get('Content-Disposition', ''))
