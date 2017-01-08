@@ -220,7 +220,7 @@ class GooglePlaces(object):
 
     def nearby_search(self, language=lang.ENGLISH, keyword=None, location=None,
                lat_lng=None, name=None, radius=3200, rankby=ranking.PROMINENCE,
-               sensor=False, type=None, types=[]):
+               sensor=False, type=None, types=[], pagetoken=None):
         """Perform a nearby search using the Google Places API.
 
         One of either location or lat_lng are required, the rest of the keyword
@@ -280,6 +280,8 @@ class GooglePlaces(object):
             self._request_params['keyword'] = keyword
         if name is not None:
             self._request_params['name'] = name
+        if pagetoken is not None:
+            self._request_params['pagetoken'] = pagetoken
         if language is not None:
             self._request_params['language'] = language
         self._add_required_param_keys()
@@ -757,6 +759,7 @@ class GooglePlacesSearchResult(object):
         for place in response['results']:
             self._places.append(Place(query_instance, place))
         self._html_attributions = response.get('html_attributions', [])
+        self._next_page_token = response.get('next_page_token', [])
 
     @property
     def raw_response(self):
@@ -780,9 +783,20 @@ class GooglePlacesSearchResult(object):
         return self._html_attributions
 
     @property
+    def next_page_token(self):
+        """Returns the next page token(next_page_token).
+        """
+        return self._next_page_token
+
+    @property
     def has_attributions(self):
         """Returns a flag denoting if the response had any html attributions."""
         return len(self.html_attributions) > 0
+
+    @property
+    def has_next_page_token(self):
+        """Returns a flag denoting if the response had any html attributions."""
+        return len(self.next_page_token) > 0
 
     def __repr__(self):
         """ Return a string representation stating the number of results."""
