@@ -87,6 +87,12 @@ Code is easier to understand than words, so let us dive right in ::
             photo.data
 
 
+    # Are there any additional pages of results?
+    if query_result.has_next_page_token:
+        query_result_next_page = google_places.nearby_search(
+                pagetoken=query_result.next_page_token)
+
+
     # Adding and deleting a place
     try:
         added_place = google_places.add_place(name='Mom and Pop local store',
@@ -136,6 +142,10 @@ Reference
             name     -- A term to be matched against the names of the Places.
                         Results will be restricted to those containing the passed name value. (default None)
 
+            pagetoken-- Optional parameter to force the search result to return the next
+                        20 results from a previously run search. Setting this parameter
+                        will execute a search with the same parameters used previously. (default None)
+
             radius   -- The radius (in meters) around the location/lat_lng to restrict
                         the search to. The maximum is 50000 meters (default 3200)
 
@@ -164,6 +174,10 @@ Reference
 
             language -- The language code, indicating in which language the results
                         should be returned, if possble. (default en)
+
+            pagetoken-- Optional parameter to force the search result to return the next
+                        20 results from a previously run search. Setting this parameter
+                        will execute a search with the same parameters used previously. (default None)
 
             radius   -- The radius (in meters) around the location/lat_lng to restrict
                         the search to. The maximum is 50000 meters (default 3200)
@@ -354,7 +368,7 @@ Reference
 
     googleplaces.Place
       reference
-        (DEPRECATED) Returns a unique identifier for the Place that can be used to 
+        (DEPRECATED) Returns a unique identifier for the Place that can be used to
         fetch full details about it. It is recommended that stored references for
         Places be regularly updated. A Place may have many valid reference tokens.
 

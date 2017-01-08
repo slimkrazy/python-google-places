@@ -35,7 +35,7 @@ from . import ranking
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
            'geocode_location']
-__version__ = '1.3.1'
+__version__ = '1.4.0'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
@@ -223,8 +223,8 @@ class GooglePlaces(object):
                sensor=False, type=None, types=[], pagetoken=None):
         """Perform a nearby search using the Google Places API.
 
-        One of either location or lat_lng are required, the rest of the keyword
-        arguments are optional.
+        One of either location, lat_lng or pagetoken are required, the rest of 
+        the keyword arguments are optional.
 
         keyword arguments:
         keyword  -- A term to be matched against all available fields, including
@@ -250,9 +250,13 @@ class GooglePlaces(object):
         types    -- An optional list of types, restricting the results to
                     Places (default []). If there is only one item the request
                     will be send as type param.
+        pagetoken-- Optional parameter to force the search result to return the next
+                    20 results from a previously run search. Setting this parameter 
+                    will execute a search with the same parameters used previously. 
+                    (default None)
         """
-        if location is None and lat_lng is None:
-            raise ValueError('One of location or lat_lng must be passed in.')
+        if location is None and lat_lng is None and pagetoken is None:
+            raise ValueError('One of location, lat_lng or pagetoken must be passed in.')
         if rankby == 'distance':
             # As per API docs rankby == distance:
             #  One or more of keyword, name, or types is required.
@@ -290,17 +294,21 @@ class GooglePlaces(object):
         _validate_response(url, places_response)
         return GooglePlacesSearchResult(self, places_response)
 
-    def text_search(self, query, language=lang.ENGLISH, lat_lng=None,
-                    radius=3200, type=None, types=[], location=None):
+    def text_search(self, query=None, language=lang.ENGLISH, lat_lng=None,
+                    radius=3200, type=None, types=[], location=None, pagetoken=None):
         """Perform a text search using the Google Places API.
 
-        Only the query kwarg is required, the rest of the keyword arguments
-        are optional.
+        Only the one of the query or pagetoken kwargs are required, the rest of the 
+        keyword arguments are optional.
 
         keyword arguments:
         lat_lng  -- A dict containing the following keys: lat, lng
                     (default None)
         location -- A human readable location, e.g 'London, England'
+                    (default None)
+        pagetoken-- Optional parameter to force the search result to return the next
+                    20 results from a previously run search. Setting this parameter 
+                    will execute a search with the same parameters used previously. 
                     (default None)
         radius   -- The radius (in meters) around the location/lat_lng to
                     restrict the search to. The maximum is 50000 meters.
@@ -326,6 +334,8 @@ class GooglePlaces(object):
                 self._request_params['types'] = '|'.join(types)
         if language is not None:
             self._request_params['language'] = language
+        if pagetoken is not None:
+            self._request_params['pagetoken'] = pagetoken
         self._add_required_param_keys()
         url, places_response = _fetch_remote_json(
                 GooglePlaces.TEXT_SEARCH_API_URL, self._request_params)
@@ -784,8 +794,7 @@ class GooglePlacesSearchResult(object):
 
     @property
     def next_page_token(self):
-        """Returns the next page token(next_page_token).
-        """
+        """Returns the next page token(next_page_token)."""
         return self._next_page_token
 
     @property
@@ -795,7 +804,7 @@ class GooglePlacesSearchResult(object):
 
     @property
     def has_next_page_token(self):
-        """Returns a flag denoting if the response had any html attributions."""
+        """Returns a flag denoting if the response had a next page token."""
         return len(self.next_page_token) > 0
 
     def __repr__(self):
