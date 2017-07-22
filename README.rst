@@ -26,8 +26,8 @@ Prerequisites
 -----------------
 .. _prerequisites:
 
-A Google API key with Places activated against it. Please check the Google API
-console, here: http://code.google.com/apis/console
+A Google API key with Google Places API Web Service and Google Maps Geocoding API activated against
+it. Please check the Google API console, here: http://code.google.com/apis/console
 
 
 Usage
@@ -119,7 +119,7 @@ Reference
     googleplaces.GooglePlacesAttributeError
 
 
-    googleplaces.geocode_location(location, sensor=False)
+    googleplaces.geocode_location(location, sensor=False, api_key=None)
       Converts a human-readable location to a Dict containing the keys: lat, lng.
       Raises googleplaces.GooglePlacesError if the geocoder fails to find the
       specified location.
