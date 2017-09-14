@@ -1033,8 +1033,8 @@ class Place(object):
     @cached_property
     def photos(self):
         self.get_details()
-        return map(lambda i: Photo(self._query_instance, i),
-                   self.details.get('photos', []))
+        return [Photo(self._query_instance, i)
+                for i in self.details.get('photos', [])]
 
     def _validate_status(self):
         if self._details is None:
