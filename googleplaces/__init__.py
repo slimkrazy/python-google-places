@@ -35,7 +35,7 @@ from . import ranking
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
            'geocode_location']
-__version__ = '1.4.0'
+__version__ = '1.4.1-rc1'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
@@ -97,7 +97,7 @@ def _fetch_remote_file(service_url, params=None, use_http_post=False):
     return (response.headers.get('content-type'),
             fn, response.read(), response.geturl())
 
-def geocode_location(location, sensor=False):
+def geocode_location(location, sensor=False, api_key=None):
     """Converts a human-readable location to lat-lng.
 
     Returns a dict with lat and lng keys.
@@ -106,14 +106,16 @@ def geocode_location(location, sensor=False):
     location -- A human-readable location, e.g 'London, England'
     sensor   -- Boolean flag denoting if the location came from a device using
                 its' location sensor (default False)
+    api_key  -- A valid Google Places API key. 
 
     raises:
     GooglePlacesError -- if the geocoder fails to find a location.
     """
-
+    params = {'address': location, 'sensor': str(sensor).lower()}
+    if api_key is not None:
+        params['key'] = api_key
     url, geo_response = _fetch_remote_json(
-            GooglePlaces.GEOCODE_API_URL,
-            {'address': location, 'sensor': str(sensor).lower()})
+            GooglePlaces.GEOCODE_API_URL, params)
     _validate_response(url, geo_response)
     if geo_response['status'] == GooglePlaces.RESPONSE_STATUS_ZERO_RESULTS:
         error_detail = ('Lat/Lng for location \'%s\' can\'t be determined.' %
@@ -585,10 +587,10 @@ class GooglePlaces(object):
     def _generate_lat_lng_string(self, lat_lng, location):
         try:
             return '%(lat)s,%(lng)s' % (lat_lng if lat_lng is not None
-                    else geocode_location(location))
-        except:
+                    else geocode_location(location=location, api_key=self.api_key))
+        except GooglePlacesError as e:
             raise ValueError(
-                'lat_lng must be a dict with the keys, \'lat\' and \'lng\'')
+                'lat_lng must be a dict with the keys, \'lat\' and \'lng\'. Cause: %s' % str(e))
 
     @property
     def request_params(self):
@@ -1031,8 +1033,8 @@ class Place(object):
     @cached_property
     def photos(self):
         self.get_details()
-        return map(lambda i: Photo(self._query_instance, i),
-                   self.details.get('photos', []))
+        return [Photo(self._query_instance, i)
+                for i in self.details.get('photos', [])]
 
     def _validate_status(self):
         if self._details is None:
