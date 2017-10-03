@@ -35,7 +35,7 @@ from . import ranking
 
 __all__ = ['GooglePlaces', 'GooglePlacesError', 'GooglePlacesAttributeError',
            'geocode_location']
-__version__ = '1.4.1-rc1'
+__version__ = '1.4.1'
 __author__ = 'Samuel Adu'
 __email__ = 'sam@slimkrazy.com'
 
@@ -1033,8 +1033,8 @@ class Place(object):
     @cached_property
     def photos(self):
         self.get_details()
-        return map(lambda i: Photo(self._query_instance, i),
-                   self.details.get('photos', []))
+        return [Photo(self._query_instance, i)
+                for i in self.details.get('photos', [])]
 
     def _validate_status(self):
         if self._details is None:
