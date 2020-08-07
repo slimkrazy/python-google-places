@@ -638,7 +638,7 @@ class Prediction(object):
     def __init__(self, query_instance, prediction):
         self._query_instance = query_instance
         self._description = prediction['description']
-        self._id = prediction['id']
+        self._id = prediction.get('id')
         self._matched_substrings = prediction['matched_substrings']
         self._place_id = prediction['place_id']
         self._reference = prediction['reference']
