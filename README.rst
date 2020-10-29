@@ -12,13 +12,22 @@ Installation
 
 .. _installation:
 
-pip install https://github.com/slimkrazy/python-google-places/zipball/master
+.. code-block:: sh
+
+    pip install https://github.com/slimkrazy/python-google-places/zipball/master
 
 OR
 
-pip install python-google-places
+.. code-block:: sh
+
+    pip install python-google-places
+
+OR
 
 Download source and then:
+
+.. code-block:: sh
+
 python setup.py install
 
 
@@ -35,8 +44,9 @@ Usage
 
 .. _usage:
 
-Code is easier to understand than words, so let us dive right in ::
+Code is easier to understand than words, so let us dive right in:
 
+.. code-block:: python
 
     from googleplaces import GooglePlaces, types, lang
 
